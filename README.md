@@ -19,6 +19,7 @@ Kelas   : PBP E
 Saya menggunakan AI untuk membantu pengerjaan tugas ini dengan scope sebagai berikut:
 1. Referensi design: Untuk memudahkan penyesuaian design, sehingga saya menanyakan terkait tema, skema warna, layout, serta font yang cocok.
 2. Penjelasan syntax yang belum saya pahami: saat saya kesulitan untuk mengetahui suatu syntax, seperti bagaimana caranya hover pada card, membuat layout grid yang menyesuaikan jumlah kolom, timeline garis garis yang menggunakan pseudo element, serta cara menerapkan fitur aksesibilitas (pada skip-to-content & prefers-reduced-motion), saya meminta untuk dijelaskan konsep dan contoh implementasinya. Setelah itu, saya menyesuaikan sendiri. Karena terdapat keterbatasan AI, yaitu saat di awal penentuan tema, walaupun saya mengajukan warna pastel, namun saya tetap mempertimbangkan aksesibilitas. Namun, AI menyarankan warna yang tidak kontras sesuai WCAG AA. Sehingga, di akhir saya memperbaikinya dengan menambahkan variasi warna (mungkin keterbatasan ini hanya dari segi UI/UX designnya saja).
+3. Penulisan ulang konten: deskripsi project ditulis ulang oleh AI dalam bahasa Indonesia menyesuaikan dengan project portfolio yang sudah saya buat (hanya merapihkan tata bahasa dari portfolio saya yang sebelumnya, struktur dan isi tetap oleh saya).
 
 ### FITUR TAMBAHAN
 
