@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,55 +7,117 @@
     <title>Dyah - Portfolio</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:wght@700&family=La+Belle+Aurore&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Lewati ke konten utama</a>
+
     <header class="site-header">
         <div class="container">
-            <a href="#profile" class="brand">Dyah</a>
+            <a href="#profile" class="brand handwritten">Dyah</a>
             <nav>
                 <a href="#profile">Profile</a>
             </nav>
         </div>
     </header>
 
-    <main>
-        <section class="hero" id="profile">
-            <div class="container hero-grid">
-                <div class="hero-identity">
-                    <p class="hero-kicker">Computer Science &middot; Universitas Indonesia</p>
-                    <h1>Dyah Zhafira Wibowo</h1>
-                </div>
-                <div class="hero-photo">
-                    <div class="photo-block"></div>
-                    <img class="avatar" src="/static/img/dyah.jpeg" alt="Photo of Dyah">
-                </div>
-                <div class="hero-details">
-                    <p class="bio">Hi guys!</p>
-                    <dl class="meta-list">
-                        <div class="meta-row">
-                            <dt>NPM</dt>
-                            <dd>2506623723</dd>
-                        </div>
-                        <div class="meta-row">
-                            <dt>Program</dt>
-                            <dd>S1 Ilmu Komputer</dd>
-                        </div>
-                    </dl>
-                    <div class="social-links">
-                        <a href="https://github.com/dyahzhafira" class="social-link">GitHub</a>
-                        <a href="https://linkedin.com/in/dyahzhafira" class="social-link">LinkedIn</a>
-                        <a href="mailto:dyahzhafira.w@gmail.com" class="social-link">Email</a>
+    <main id="main-content">
+
+        <section id="about">
+            <div class="polaroid">
+                <img src="{% static 'img/dyah.jpeg' %}" alt="Foto profil Dyah" class="profile-photo">
+                <p class="polaroid-caption handwritten">Dyah Zhafira</p>
+            </div>
+            <h1>Dyah Zhafira</h1>
+            <p class="npm">NPM: 2506623723</p>
+            <p class="bio">
+               Hi! I'm a <span class="highlight">Computer Science student</span> passionate about becoming a <span class="highlight">Software Engineer</span>. Let's get to know each other!
+            </p>
+        </section>
+
+        <section id="experience">
+            <h2>Field Notes</h2>
+            <div class="timeline">
+
+                <article class="timeline-item">
+                    <span class="timeline-dot"></span>
+                    <div class="timeline-card">
+                        <p class="timeline-period">Aug 2026 - Present · 2 mos</p>
+                        <h3>Teaching Assistant of Discrete Math I</h3>
+                        <p class="timeline-org handwritten">@ Faculty of Computer Science, Universitas Indonesia</p>
+                        <p>
+                            Deliver tutoring sessions and assist undergraduate students in core discrete mathematics
+                            concepts. Develop practice problems and grade submissions, providing feedback to
+                            reinforce understanding.
+                        </p>
                     </div>
-                </div>
+                </article>
+
+                <article class="timeline-item">
+                    <span class="timeline-dot"></span>
+                    <div class="timeline-card">
+                        <p class="timeline-period">Apr 2026 - Present · 6 mos</p>
+                        <h3>Software Engineer Academy Staff</h3>
+                        <p class="timeline-org handwritten">@ COMPFEST</p>
+                        <ul>
+                            <li>Recruited & coordinated mentors, speakers, and judges for the Software Engineer Academy Program.</li>
+                            <li>Conducted participant selection through assignment assessments and interviews.</li>
+                            <li>Served as MC during program sessions and events.</li>
+                        </ul>
+                    </div>
+                </article>
+
+                <article class="timeline-item">
+                    <span class="timeline-dot"></span>
+                    <div class="timeline-card">
+                        <p class="timeline-period">Mar 2026 - Present · 7 mos</p>
+                        <h3>Developer</h3>
+                        <p class="timeline-org handwritten">@ Badan Eksekutif Mahasiswa Universitas Indonesia (BEM UI)</p>
+                        <ul>
+                            <li>Developed & maintained web platforms for BEM UI's open recruitments and event registrations.</li>
+                            <li>Designed UI/UX prototypes and interfaces for BEM UI website.</li>
+                            <li>Assisted the publication team in managing digital publications.</li>
+                        </ul>
+                    </div>
+                </article>
+
+                <article class="timeline-item">
+                    <span class="timeline-dot"></span>
+                    <div class="timeline-card">
+                        <p class="timeline-period">Feb 2026 - Present · 8 mos - Jakarta, Indonesia</p>
+                        <h3>Data and Technology Associate</h3>
+                        <p class="timeline-org handwritten">@ StudentsxCEOs Jakarta</p>
+                        <ul>
+                            <li>Developed and maintained the organization's external website with a focus on scalability and usability to support better information access.</li>
+                            <li>Implemented updates and managed content to ensure accurate and real time information delivery.</li>
+                            <li>Collaborated with multiple divisions to translate operational needs into functional web features.</li>
+                        </ul>
+                    </div>
+                </article>
+
+                <article class="timeline-item">
+                    <span class="timeline-dot"></span>
+                    <div class="timeline-card">
+                        <p class="timeline-period">Jan 2026 - Apr 2026 · 4 mos - Depok, West Java, Indonesia</p>
+                        <h3>Web Developer</h3>
+                        <p class="timeline-org handwritten">@ BETIS Fasilkom UI</p>
+                        <ul>
+                            <li>Developed and maintained responsive front-end components for the event website.</li>
+                            <li>Collaborated with back-end and UI/UX teams to ensure seamless API integration and consistent user interface.</li>
+                            <li>Contributed to building a functional and user-friendly website to support event operations.</li>
+                        </ul>
+                    </div>
+                </article>
+
             </div>
         </section>
+
     </main>
 
     <footer class="site-footer">
         <div class="container">
-            <p>&copy; 2026 Dyah. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
+            <p class="handwritten">&copy; 2026 Dyah. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
         </div>
     </footer>
 </body>
