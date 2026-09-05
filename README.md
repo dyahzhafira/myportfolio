@@ -19,3 +19,14 @@ Kelas   : PBP E
 Saya menggunakan AI untuk membantu pengerjaan tugas ini dengan scope sebagai berikut:
 1. Referensi design: Untuk memudahkan penyesuaian design, sehingga saya menanyakan terkait tema, skema warna, layout, serta font yang cocok.
 2. Penjelasan syntax yang belum saya pahami: saat saya kesulitan untuk mengetahui suatu syntax, seperti bagaimana caranya hover pada card, membuat layout grid yang menyesuaikan jumlah kolom, timeline garis garis yang menggunakan pseudo element, serta cara menerapkan fitur aksesibilitas (pada skip-to-content & prefers-reduced-motion), saya meminta untuk dijelaskan konsep dan contoh implementasinya. Setelah itu, saya menyesuaikan sendiri. Karena terdapat keterbatasan AI, yaitu saat di awal penentuan tema, walaupun saya mengajukan warna pastel, namun saya tetap mempertimbangkan aksesibilitas. Namun, AI menyarankan warna yang tidak kontras sesuai WCAG AA. Sehingga, di akhir saya memperbaikinya dengan menambahkan variasi warna (mungkin keterbatasan ini hanya dari segi UI/UX designnya saja).
+
+### FITUR TAMBAHAN
+
+Terdapat beberapa fitur aksesibilitas untuk UI/UX sebagai berikut:
+1. Skip to content link: ketika tekan tombol tab, maka akan muncul link "lewati ke konten utama". Sebenarnya untuk saat ini fungsi fitur tersebut belum terlihat karena masih sederhana dan hanya punya 1 link navigasi. Namun, fitur ini tetap diterapkan untuk best practice pengembangan kedepannya.
+
+2. Visible focus state: seluruh elemen, seperti link navbar, card skill, card project, dan card experience dapat dinavigasi menggunakan tab dan akan menampilan outline yang jelas.
+
+3. prefers reduced motion: seluruh animasi hover pada card dapat otomatis nonaktif jika user mengaktifkan fitur reduce motion
+
+4. Kontras warna WCAG AA: Sebenarnya fitur ini hanya berkaitan dengan color palette, untuk memastikan sesuai dengan standar kontras. 

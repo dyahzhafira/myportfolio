@@ -158,7 +158,9 @@ h1, h2 {
 
 a:focus-visible,
 button:focus-visible,
-.logo-item:focus-visible {
+.logo-item:focus-visible,
+.project-card:focus-visible,
+.timeline-card:focus-visible{
     outline: 3px solid var(--color-backend);
     outline-offset: 3px;
 }
