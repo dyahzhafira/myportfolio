@@ -5,13 +5,21 @@
 }
 
 :root {
-    --ink: #1c1917;
-    --paper: #faf6f0;
-    --accent: #d95d39;
-    --accent-dark: #a8442a;
+    --ink: #3a3530;
+    --paper: #fbf8f3;
     --line: #e3d9c9;
     --text-muted: #6b6459;
     --radius: 4px;
+    --rose: #f2c9d1;
+    --rose-bold: #e85d8a;
+    --rose-text: #c2447a;
+    --lavender: #d9d3f0;
+    --sky: #c7e0ef;
+    --mint: #c9e4d1;
+    --color-backend: var(--rose-bold);
+    --color-frontend: var(--sky);
+    --color-devops: var(--mint);
+    --color-ink: var(--ink);
 }
 
 body {
@@ -21,8 +29,21 @@ body {
     line-height: 1.6;
 }
 
-h1, .brand {
-    font-family: "Space Grotesk", -apple-system, sans-serif;
+h1, h2 {
+    font-family: "Libre Caslon Text", Georgia, serif;
+}
+
+.handwritten {
+    font-family: "La Belle Aurore", cursive;
+    color: var(--rose-text);
+}
+
+.highlight {
+    background-image: linear-gradient(var(--rose) 0%, var(--rose) 100%);
+    background-repeat: no-repeat;
+    background-size: 100% 0.35em;
+    background-position: 0 85%;
+    padding: 0 0.1em;
 }
 
 .container {
@@ -31,6 +52,7 @@ h1, .brand {
     padding: 0 1.5rem;
 }
 
+/*header*/
 .site-header {
     border-bottom: 1px solid var(--line);
 }
@@ -60,115 +82,54 @@ h1, .brand {
     font-size: 0.95rem;
 }
 
-.hero {
-    padding: 4.5rem 0 5rem;
+/*about*/
+#about {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 4.5rem 1.5rem 5rem;
+    text-align: center;
 }
 
-.hero-grid {
-    display: grid;
-    grid-template-columns: 1.3fr 1fr;
-    grid-template-areas:
-        "identity photo"
-        "details  photo";
-    gap: 1.5rem 3rem;
-}
-
-.hero-identity {
-    grid-area: identity;
-}
-
-.hero-details {
-    grid-area: details;
-}
-
-.hero-kicker {
-    font-size: 0.85rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--accent-dark);
-    font-weight: 700;
-    margin-bottom: 0.75rem;
-}
-
-.hero-identity h1 {
-    font-size: clamp(3rem, 7vw, 5rem);
-    line-height: 0.95;
-}
-
-.bio {
-    color: var(--text-muted);
-    max-width: 480px;
-    margin-bottom: 1.5rem;
-}
-
-.meta-list {
-    display: flex;
-    gap: 2rem;
-    margin-bottom: 1.5rem;
-}
-
-.meta-row dt {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--text-muted);
-    margin-bottom: 0.15rem;
-}
-
-.meta-row dd {
-    font-weight: 600;
-}
-
-.social-links {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-}
-
-.social-link {
+.polaroid {
     display: inline-block;
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-decoration: none;
-    color: var(--paper);
-    background-color: var(--ink);
+    background: var(--rose);
+    padding: 0.75rem;
     border-radius: var(--radius);
-    padding: 0.5rem 1.1rem;
-    transition: background-color 0.2s ease;
+    box-shadow: 2px 3px 8px rgba(58, 53, 48, 0.15);
+    transform: rotate(-2deg);
+    margin-bottom: 1.5rem;
 }
 
-.social-link:hover {
-    background-color: var(--accent);
-}
-
-.hero-photo {
-    grid-area: photo;
-    align-self: center;
-    position: relative;
-}
-
-.photo-block {
-    position: absolute;
-    top: 1.25rem;
-    left: 1.25rem;
-    width: 100%;
-    height: 100%;
-    background-color: var(--accent);
-    border-radius: var(--radius);
-    z-index: 0;
-}
-
-.avatar {
-    position: relative;
-    z-index: 1;
+.profile-photo {
     display: block;
-    width: 100%;
-    aspect-ratio: 1 / 1;
+    width: 180px;
+    height: 180px;
     object-fit: cover;
-    border-radius: var(--radius);
-    border: 3px solid var(--ink);
+    border: 1px solid rgba(58, 53, 48, 0.1);
 }
 
+.polaroid-caption {
+    text-align: center;
+    margin-top: 0.5rem;
+    font-size: 1.1rem;
+}
+
+#about h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    margin-bottom: 0.5rem;
+}
+
+.npm {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+#about .bio {
+    color: var(--text-muted);
+}
+
+/*footer*/
 .site-footer {
     padding: 1.5rem;
     color: var(--text-muted);
@@ -176,20 +137,105 @@ h1, .brand {
     border-top: 1px solid var(--line);
 }
 
-@media (max-width: 600px) {
-    .hero-grid {
-        grid-template-columns: 1fr;
-        grid-template-areas:
-            "identity"
-            "photo"
-            "details";
-    }
+/*skip to content link*/
+.skip-link {
+    position: absolute;
+    top: -50px;
+    left: 10px;
+    background: var(--color-ink);
+    color: white;
+    padding: 10px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: top 0.2s ease;
+    z-index: 100;
+}
 
-    .hero-photo {
-        max-width: 220px;
-    }
+.skip-link:focus {
+    top: 10px;
+}
 
-    .social-links {
-        justify-content: flex-start;
+a:focus-visible,
+button:focus-visible,
+.logo-item:focus-visible {
+    outline: 3px solid var(--color-backend);
+    outline-offset: 3px;
+}
+
+/*experiences section*/
+#experience {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.timeline {
+    position: relative;
+    margin-top: 20px;
+    padding-left: 24px;
+    border-left: 2px solid var(--line);
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 28px;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.timeline-dot {
+    position: absolute;
+    top: 6px;
+    left: -30px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--rose-bold);
+}
+
+.timeline-card {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.timeline-period {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.timeline-org {
+    font-size: 1.15rem;
+    margin-bottom: 0.5rem;
+}
+
+.timeline-card p:not(.timeline-period):not(.timeline-org) {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.timeline-card ul {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    padding-left: 1.1rem;
+}
+
+.timeline-card li {
+    margin-bottom: 0.3rem;
+}
+
+.timeline-card li:last-child {
+    margin-bottom: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
 }
