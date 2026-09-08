@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dyah - Portfolio</title>
+    <title>{{ name }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:wght@700&family=La+Belle+Aurore&display=swap" rel="stylesheet">
@@ -15,9 +15,10 @@
 
     <header class="site-header">
         <div class="container">
-            <a href="#about" class="brand handwritten">Dyah</a>
+            <a href="{% url 'main:show_main' %}" class="brand handwritten">{{ name }}</a>
             <nav>
-                <a href="#about">Profile</a>
+                <a href="{% url 'main:show_main' %}">Profile</a>
+                <a href="{% url 'main:show_experience' %}">Experience</a>
             </nav>
         </div>
     </header>
@@ -29,11 +30,9 @@
                 <img src="{% static 'img/dyah.jpeg' %}" alt="Foto profil Dyah" class="profile-photo">
                 <p class="polaroid-caption handwritten">Dyah Zhafira</p>
             </div>
-            <h1>Dyah Zhafira</h1>
-            <p class="npm">NPM: 2506623723</p>
-            <p class="bio">
-               Hi! I'm a <span class="highlight">Computer Science student</span> passionate about becoming a <span class="highlight">Software Engineer</span>. Let's get to know each other!
-            </p>
+            <h1>{{ name }}</h1>
+            <p class="npm">{{ npm }}</p>
+            <p class="bio"> {{ bio }}</p>
         </section>
 
         <section id="experience">
@@ -275,7 +274,7 @@
 
     <footer class="site-footer">
         <div class="container">
-            <p class="handwritten">&copy; 2026 Dyah. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
+            <p class="handwritten">&copy; 2026 {{ name }}. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
         </div>
     </footer>
 </body>
