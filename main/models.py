@@ -24,3 +24,32 @@ class Experience(models.Model):
     @property
     def is_ongoing(self):
         return self.ended_at is None
+
+class Project(models.Model):
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
+
+    title = models.CharField(max_length=255)
+    description=models.TextField()
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('progress', 'In Progress'),
+            ('completed', 'Completed'),
+        ]
+    )
+
+    project_type = models.CharField(
+        max_length=20,
+        choices=[
+            ('individual', 'Individual'),
+            ('group', 'Group'),
+        ]
+    )
+    tech_stack= models.JSONField(default=list)
+
+    def __str__(self):
+        return self.title
