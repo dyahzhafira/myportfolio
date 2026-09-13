@@ -16,6 +16,7 @@ class MainTest(TestCase):
 
         self.project = Project.objects.create(
             title="SignD",
+            slug="signd-test",
             description="Platform Siaga Bencana Inklusif untuk Disabilitas",
             status="progress",
             project_type="individual",

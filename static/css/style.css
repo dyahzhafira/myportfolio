@@ -306,18 +306,30 @@ button:focus-visible,
     gap: 10px;
 }
 
+.project-card h2 a {
+    color: var(--ink);
+    text-decoration: none;
+}
+
+.project-card h2 a:hover,
+.project-card h2 a:focus-visible {
+    color: var(--rose-text);
+}
+
 .project-card:hover {
     transform: translateY(-6px);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
 .project-tag {
+    display: inline-block;
     font-size: 0.8rem;
     font-weight: 600;
     color: var(--rose-text);
     text-transform: uppercase;
     letter-spacing: 0.03em;
 }
+
 
 .tech-stack {
     display: flex;
@@ -422,4 +434,55 @@ button:focus-visible,
     margin-top: 1rem;
     font-size: 0.85rem;
     font-weight: 600;
+}
+
+/* ===== Project detail page ===== */
+#project-detail {
+    padding: 40px 20px;
+}
+
+#project-detail .container {
+    max-width: 700px;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 20px;
+    padding: 6px 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--ink);
+    background: #fff;
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.back-link:hover,
+.back-link:focus-visible {
+    border-color: var(--rose-bold);
+    color: var(--rose-text);
+}
+
+.detail-card {
+    padding: 24px;
+    background-color: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: 2px 3px 8px rgba(58, 53, 48, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.detail-card h1 {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-family: "Libre Caslon Text", Georgia, serif;
+}
+
+.detail-card .project-description {
+    color: var(--text-muted);
+    line-height: 1.7;
 }

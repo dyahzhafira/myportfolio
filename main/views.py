@@ -1,7 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 
-from main.models import Experience
-from main.models import Project
+from main.models import Experience, Project
 
 
 def show_main(request):
@@ -31,3 +30,11 @@ def show_project(request):
         "project_list": Project.objects.all(),
     }
     return render(request, "project.html", context)
+
+def show_project_detail(request, slug):
+    project = get_object_or_404(Project, slug=slug)
+    context = {
+        "name": "Dyah Zhafira",
+        "project": project,
+    }
+    return render(request, "project_detail.html", context)
