@@ -97,3 +97,18 @@ class MainTest(TestCase):
         response = self.client.get(reverse("main:show_project"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Belum ada proyek yang ditambahkan.")
+
+    def test_project_detail_page(self):
+        response = self.client.get(reverse("main:show_project_detail", args=[self.project.slug]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "project_detail.html")
+        self.assertContains(response, self.project.title)
+        self.assertContains(response, self.project.description)
+        self.assertContains(response, "In Progress")
+        self.assertContains(response, "Individual")
+
+    def test_project_detail_not_found(self):
+        response = self.client.get(reverse("main:show_project_detail", args=["slug-yang-gak-ada"]))
+
+        self.assertEqual(response.status_code, 404)
