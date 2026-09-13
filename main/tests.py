@@ -31,6 +31,9 @@ class MainTest(TestCase):
                 }
             ]
         )
+        
+        Experience.objects.exclude(pk=self.experience.pk).delete()
+        Project.objects.exclude(pk=self.project.pk).delete()
 
     def test_main_url_is_accessible(self):
         response = self.client.get(reverse("main:show_main"))
