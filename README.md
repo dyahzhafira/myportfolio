@@ -31,3 +31,83 @@ Terdapat beberapa fitur aksesibilitas untuk UI/UX sebagai berikut:
 3. prefers reduced motion: seluruh animasi hover pada card dapat otomatis nonaktif jika user mengaktifkan fitur reduce motion
 
 4. Kontras warna WCAG AA: Sebenarnya fitur ini hanya berkaitan dengan color palette, untuk memastikan sesuai dengan standar kontras. 
+
+### TUGAS 2
+1. Jelaskan alur yang terjadi ketika pengguna membuka halaman portofolio baru, mulai dari permintaan yang diterima proyek hingga data ditampilkan pada browser. Dalam jawabanmu, jelaskan peran urls.py proyek, urls.py aplikasi, view, model, dan template
+
+-> Jadi saat browser akses `/project/`, request tersebut akan masuk ke `portfolio/urls.py`. Nah, di file tersebut ada `path("", include("main.urls"))`. Sehingga, semua path dilempar ke `main/urls.py` (ini yang level app). Kemudian, di file tersebut ada path `project/` yang sesuai sama `name="show_project`. Django memanggil fungsi `show_project` di `main/views.py`. Di view ini aku ambil semua data lewat `Project.objects.all()` yang ada di model project. Kemudia, masukin ke context `project_list`, lalu `render(request, "project.html", context)`. Terakhir, nantinya template buka `project.html` dan loop untuk tiap project dari `{% for project in project_list %}` dan tiap project.title, project.description, dll akan diganti oleh data dari database dan kalau project_list kosong template bakal masuk ke kondisi %empty%. Selain halaman ini, ada juga halaman detail per project yang alurnya mirip, namun terdapat slug untuk url nya.
+
+2. Mengapa data untuk bagian portfolio baru sebaiknya disimpan pada model dan tidak di tulis langsung di dalam template? Jelaskan dampaknya terhadap kemudahan pemeliharaan dan pengembangan aplikasi.
+
+-> Kalau datanya di hardcode di HTML seperti sebelumnya, maka dari sisi developer, tiap kita akan menambah/edit/hapus atau CRUD, maka harus mengubah ke template secara langsung kemudian harus berulang kali deploy tiap kali dilakukan perubahan, sehingga rawan bug juga. Oleh karena itu, jika data berada di model, maka data akan terpisah dari tampilan sesuai MVT dan developer juga bisa ubah data secara langsung. Kalau dalam kasus ini, maka dapat diubah melalui Django shell dan untuk kedepannya dapat menggunakan admin panel tanp harus menyentuh kode template dan deploy berulang. Selain itu, code dan data jadi maintainable dan konsisten (minim typo), sehingga baik untuk scalability pengembangan lanjutannya.
+
+3. Apa perbedaan fungsi makemigrations dan migrate pada Django? Berikan contoh perubahan model yang mengharuskanmu menjalankan kedua perintah tersebut
+
+-> makemigrations itu membandingkan model sekarang dengan history last migration kemudian generate file migrasi baru. Contohnya rancangan perubahan struktur tabel, tapi nantinya database belum benar benar keubah. Kalau migrate itu mengeksekusinya langsung ke database. Contohnya, saat saya nambahin field slug (unique, wajib) ke model project yang sudah ada 3 data, saat itu makemigrations sempat gagal karena semua baris lama kena default value yang sama (waktu itu saya isi default valuenya ""). Sehingga, melanggar constraint unique. Solusinya, nullable dulu field slugnya (agar migrasinya tidak perlu default dulu). Lalu, baru isi slug dengan data lama lewat shell. Kemudian, ubah lagi menjadi wajib dan jalanin makemigrations and migrate (udah aman).
+
+### AI Disclosure (Tugas 2)
+Selain scope yang sudah ada di Tugas 1. Di tugas 2 saya menggunakan ChatGPT & Claude dengan scope tambahan sebagai berikut:
+1. Breakdown checklist tugas, di sini saya meminta AI untuk membantu struktur alur pengerjaan tugas, sehingga lebih terstruktur untuk mengerjakan step by step based on checklist yang diberikan.
+2. Debugging migrasi & test, beberapa kali memang sempat terdapat error saat migrasi. Salah satunya seperti yang saya sebutkan sebelumnya, saya lupa bahwa saya sudah mengisi data project, sehingga terdapat bug ketika saya add field slug. Saya meminta AI untuk membantu debugging dan memberitahu juga cara debuggingnya agar saya juga bisa debugging sendiri. Namun, di tengah-tengah, justru claude yang membuat bug baru dari sarannya untuk menambahkan default value "". Sehingga, saya hapus migrasinya, dan mulai debugging dari awal dan mencobanya sendiri. Selain itu, saya minta untuk dijelskan penyebabnya dan selanjutnya saya eksekusi perbaikannya.
+3. Referensi desain, karena terdapat page baru yang berbeda dengan page sebelumnya, sehingga saya meminta untuk diberikan referensi design agar konsisten. 
+
+Notes: pada awal saya menggunakan claude code extension, saya lupa untuk memberikan constraint bahwa tidak boleh mengubah code secara langsung. Sehingga, ada beberapa bagian yang "inisiatif" dikerjakan claudenya, namun di akhir saya memberikan constraint tersebut dan undo perubahan yang dilakukan claude. Sehingga, peran claude di sini untuk bantu saya dalam debugging dan dieksekusi oleh saya.
+
+Berikut link chatgpt: https://chatgpt.com/share/6aa66285-e0f4-83ec-9dd6-df711a5ac37a 
+
+Karena saya tidak bisa mengirimkan link claudenya, berikut saya lampirkan prompt saat debugging:
+
+```
+Error-nya: UNIQUE constraint failed — soalnya waktu kamu pilih default "" (string kosong) buat 3 row yang udah ada, ketiganya jadi punya slug yang sama (""), padahal field-nya unique=True. Makanya gagal pas nulis ke database. Migrasinya kegagalan di tengah jalan (biasanya otomatis rollback di SQLite, jadi database kamu masih aman/utuh).
+
+Cara benerinnya — pake pendekatan 2 tahap biar gak collide:
+
+1. Hapus migrasi yang gagal tadi
+
+rm main/migrations/0004_project_slug.py
+2. Ubah model, slug sementara boleh kosong dulu
+Di main/models.py:
+
+
+slug = models.SlugField(unique=True, null=True, blank=True)
+3. Generate & apply migrasi (harusnya lancar sekarang, karena null=True gak butuh default & SQLite ngebolehin banyak NULL walau field-nya unique)
+
+python manage.py makemigrations
+python manage.py migrate
+4. Isi slug asli buat 3 project yang udah ada
+
+python manage.py shell
+
+from main.models import Project
+
+Project.objects.filter(title__startswith="SignD").update(slug="signd")
+Project.objects.filter(title__startswith="BEM UI").update(slug="bem-ui-spt")
+Project.objects.filter(title__startswith="ClinicThinking").update(slug="clinicthinking")
+5. Balikin model jadi wajib (gak nullable lagi)
+
+slug = models.SlugField(unique=True)
+6. Generate & apply migrasi lagi (kali ini aman, karena semua row udah punya slug unik)
+
+python manage.py makemigrations
+python manage.py migrate
+Setelah itu lanjut ke langkah view/urls/template yang udah gw kasih sebelumnya. Kabarin kalau masih ada error di salah satu tahap ini.
+
+c:\Users\USER\myportfolio\main\models.py
+cara keluar dari shellnya gmn?
+Ketik exit() terus enter, atau bisa juga Ctrl+Z lalu Enter (di Windows/PowerShell) buat keluar dari python manage.py shell.
+
+kalo udah?
+Lanjut ke langkah 5-6 dari instruksi sebelumnya:
+
+5. Balikin model jadi wajib (gak nullable lagi) — di main/models.py:
+
+
+slug = models.SlugField(unique=True)
+(hapus null=True, blank=True)
+
+6. Generate & apply migrasi lagi:
+
+
+python manage.py makemigrations
+python manage.py migrate
+```
