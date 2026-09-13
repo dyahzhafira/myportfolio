@@ -126,6 +126,12 @@ h1, h2 {
     margin-bottom: 1rem;
 }
 
+.study-program {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
 #about .bio {
     color: var(--text-muted);
 }
