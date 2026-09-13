@@ -12,6 +12,8 @@ def show_main(request):
         "bio": (
             "Hi, I'm Dyah! Let's get to know each other :)"
         ),
+        "experience_list": Experience.objects.all(),
+        "project_list": Project.objects.all(),
     }
     return render(request, "index.html", context)
 

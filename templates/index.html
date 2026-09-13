@@ -19,6 +19,7 @@
             <nav>
                 <a href="{% url 'main:show_main' %}">Profile</a>
                 <a href="{% url 'main:show_experience' %}">Experience</a>
+                <a href="{% url 'main:show_project' %}">Project</a>
             </nav>
         </div>
     </header>
@@ -39,75 +40,23 @@
             <h2>Field Notes</h2>
             <div class="timeline">
 
+                {% for experience in experience_list %}
                 <article class="timeline-item">
                     <span class="timeline-dot"></span>
                     <div class="timeline-card" tabindex="0">
-                        <p class="timeline-period">Aug 2026 - Present · 2 mos</p>
-                        <h3>Teaching Assistant of Discrete Math I</h3>
+                        <p class="timeline-period">{{ experience.started_at }} - {{experience.ended_at }}</p>
+                        <h3>{{ experience.title }}</h3>
                         <p class="timeline-org handwritten">@ Faculty of Computer Science, Universitas Indonesia</p>
                         <p>
-                            Deliver tutoring sessions and assist undergraduate students in core discrete mathematics
-                            concepts. Develop practice problems and grade submissions, providing feedback to
-                            reinforce understanding.
+                            {{experience.description}}
                         </p>
                     </div>
                 </article>
-
-                <article class="timeline-item">
-                    <span class="timeline-dot"></span>
-                    <div class="timeline-card" tabindex="0">
-                        <p class="timeline-period">Apr 2026 - Present · 6 mos</p>
-                        <h3>Software Engineer Academy Staff</h3>
-                        <p class="timeline-org handwritten">@ COMPFEST</p>
-                        <ul>
-                            <li>Recruited & coordinated mentors, speakers, and judges for the Software Engineer Academy Program.</li>
-                            <li>Conducted participant selection through assignment assessments and interviews.</li>
-                            <li>Served as MC during program sessions and events.</li>
-                        </ul>
-                    </div>
-                </article>
-
-                <article class="timeline-item">
-                    <span class="timeline-dot"></span>
-                    <div class="timeline-card" tabindex="0">
-                        <p class="timeline-period">Mar 2026 - Present · 7 mos</p>
-                        <h3>Developer</h3>
-                        <p class="timeline-org handwritten">@ Badan Eksekutif Mahasiswa Universitas Indonesia (BEM UI)</p>
-                        <ul>
-                            <li>Developed & maintained web platforms for BEM UI's open recruitments and event registrations.</li>
-                            <li>Designed UI/UX prototypes and interfaces for BEM UI website.</li>
-                            <li>Assisted the publication team in managing digital publications.</li>
-                        </ul>
-                    </div>
-                </article>
-
-                <article class="timeline-item">
-                    <span class="timeline-dot"></span>
-                    <div class="timeline-card" tabindex="0">
-                        <p class="timeline-period">Feb 2026 - Present · 8 mos - Jakarta, Indonesia</p>
-                        <h3>Data and Technology Associate</h3>
-                        <p class="timeline-org handwritten">@ StudentsxCEOs Jakarta</p>
-                        <ul>
-                            <li>Developed and maintained the organization's external website with a focus on scalability and usability to support better information access.</li>
-                            <li>Implemented updates and managed content to ensure accurate and real time information delivery.</li>
-                            <li>Collaborated with multiple divisions to translate operational needs into functional web features.</li>
-                        </ul>
-                    </div>
-                </article>
-
-                <article class="timeline-item">
-                    <span class="timeline-dot"></span>
-                    <div class="timeline-card" tabindex="0">
-                        <p class="timeline-period">Jan 2026 - Apr 2026 · 4 mos - Depok, West Java, Indonesia</p>
-                        <h3>Web Developer</h3>
-                        <p class="timeline-org handwritten">@ BETIS Fasilkom UI</p>
-                        <ul>
-                            <li>Developed and maintained responsive front-end components for the event website.</li>
-                            <li>Collaborated with back-end and UI/UX teams to ensure seamless API integration and consistent user interface.</li>
-                            <li>Contributed to building a functional and user-friendly website to support event operations.</li>
-                        </ul>
-                    </div>
-                </article>
+                {%empty%}
+                <p class="empty-state"> 
+                    Belum ada experience ditambahkan
+                </p>
+                {%endfor%}
 
             </div>
         </section>
@@ -115,52 +64,24 @@
         <section id="projects">
             <h2>Projects</h2>
             <div class="projects-grid">
-
+                {% for project in project_list %}
                 <article class="project-card" tabindex="0">
-                    <span class="project-tag">GEMASTIK XIX 2026 - Individual</span>
-                    <h3>SignD - Disaster Response Platform for Disabilities</h3>
+                    <span class="project-tag">{{project.get_project_type_display}}</span>
+                    <h3>{{ project.title }}</h3>
                     <p>
-                        Platform respons bencana end-to-end yang dirancang agar bantuan darurat
-                        lebih mudah diakses oleh penyandang disabilitas sensorik, dari riset awal
-                        hingga arsitektur sistem dan produk yang siap dipakai.
+                        {{ project.description }}
                     </p>
                     <div class="tech-stack">
-                        <span class="tech-badge"><img src="https://cdn.simpleicons.org/flutter" alt="" loading="lazy">Flutter</span>
-                        <span class="tech-badge"><img src="https://cdn.simpleicons.org/go" alt="" loading="lazy">Go/Fiber</span>
-                        <span class="tech-badge"><img src="https://cdn.simpleicons.org/fastapi" alt="" loading="lazy">Python/FastAPI</span>
-                        <span class="tech-badge"><img src="https://cdn.simpleicons.org/postgresql" alt="" loading="lazy">PostgreSQL</span>
+                        {% for tech in project.tech_stack %}
+                            <span class="tech-badge"><img src="https://cdn.simpleicons.org/{{ tech.icon }}" alt="" loading="lazy">{{ tech.name }}</span>
+                        {% endfor %}
                     </div>
                 </article>
-
-                <article class="project-card" tabindex="0">
-                    <span class="project-tag">Assigned - Group Project</span>
-                    <h3>BEM UI - Sistem Perekrutan Terbuka</h3>
-                    <p>
-                        Platform perekrutan dan registrasi acara terpusat untuk BEM UI, terintegrasi
-                        SSO kampus, dipakai di 10+ program dengan 100–500+ pendaftar tiap program.
-                    </p>
-                    <div class="tech-stack">
-                        <span class="tech-badge"><img src="https://cdn.simpleicons.org/nextdotjs" alt="" loading="lazy">Next.js</span>
-                        <span class="tech-badge"><img src="https://cdn.simpleicons.org/bun" alt="" loading="lazy">Bun/Hono</span>
-                        <span class="tech-badge"><img src="https://cdn.simpleicons.org/typescript" alt="" loading="lazy">TypeScript</span>
-                    </div>
-                </article>
-
-                <article class="project-card" tabindex="0">
-                    <span class="project-tag">LIDM 2026 - Group Project</span>
-                    <h3>ClinicThinking - AI Clinical Reasoning Simulation</h3>
-                    <p>
-                        Platform simulasi klinis berbasis AI yang mendeteksi pola bias kognitif dari
-                        cara pengguna mengambil keputusan langkah demi langkah, bukan cuma menilai
-                        jawaban akhirnya.
-                    </p>
-                    <div class="tech-stack">
-                        <span class="tech-badge"><img src="https://cdn.simpleicons.org/go" alt="" loading="lazy">Go/Fiber</span>
-                        <span class="tech-badge"><img src="https://cdn.simpleicons.org/fastapi" alt="" loading="lazy">Python/FastAPI</span>
-                        <span class="tech-badge"><img src="https://cdn.simpleicons.org/googlegemini" alt="" loading="lazy">Gemini API</span>
-                    </div>
-                </article>
-
+                {%empty%}
+                <p class="empty-state">
+                    Belum ada project yang ditambahkan 
+                </p>
+                {% endfor %}
             </div>
         </section>
 

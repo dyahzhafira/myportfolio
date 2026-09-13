@@ -25,37 +25,32 @@
     </header>
 
     <main>
-    <section class="experience-section" id="experience">
-        <div class="container">
-            <p class="section-kicker">Perjalanan saya sejauh ini</p>
-            <h1>Experience</h1>
+        <section class="projects-section" id="project">
+            <div class="container">
+                <h1>Projects</h1>
 
-            <div class="experience-grid">
-                {% for experience in experience_list %}
-                    <article class="experience-card">
-                        <span class="experience-category">
-                            {{ experience.get_category_display }}
-                        </span>
-                        <h2>{{ experience.title }}</h2>
-                        <p class="experience-description">
-                            {{ experience.description }}
-                        </p>
-
-                        {% if experience.is_ongoing %}
-                            <p class="experience-status">Sedang berlangsung</p>
-                        {% else %}
-                            <p class="experience-status">Selesai</p>
-                        {% endif %}
-                    </article>
-                {% empty %}
-                    <p class="empty-state">
-                        Belum ada pengalaman yang ditambahkan.
-                    </p>
-                {% endfor %}
+                <div class="projects-grid">
+                    {% for project in project_list %}
+                        <article class="project-card">
+                            <span class="project-tag">
+                                {{ project.get_project_type_display }} · {{ project.get_status_display }}
+                            </span>
+                            <h2>{{ project.title }}</h2>
+                            <p class="project-description">{{ project.description }}</p>
+                            <div class="tech-stack">
+                                {% for tech in project.tech_stack %}
+                                    <span class="tech-badge"><img src="https://cdn.simpleicons.org/{{ tech.icon }}" alt="" loading="lazy">{{ tech.name }}</span>
+                                {% endfor %}
+                            </div>
+                        </article>
+                    {% empty %}
+                        <p class="empty-state">Belum ada proyek yang ditambahkan.</p>
+                    {% endfor %}
+                </div>
             </div>
-        </div>
-    </section>
-</main>
+        </section>
+    </main>
+
 
     <footer class="site-footer">
         <div class="container">
