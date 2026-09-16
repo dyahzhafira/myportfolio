@@ -312,6 +312,15 @@ button:focus-visible,
     gap: 10px;
 }
 
+.project-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: var(--radius);
+}
+
 .project-card h2 a {
     color: var(--ink);
     text-decoration: none;
@@ -442,7 +451,7 @@ button:focus-visible,
     font-weight: 600;
 }
 
-/* ===== Project detail page ===== */
+/*Project detail page */
 #project-detail {
     padding: 40px 20px;
 }

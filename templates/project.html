@@ -27,6 +27,11 @@
                 <div class="projects-grid">
                     {% for project in project_list %}
                         <article class="project-card">
+                            {% if project.project_image_url %}
+                                <img src="{{ project.project_image_url }}"
+                                     alt="Gambar {{ project.title }}"
+                                     class="project-image">
+                            {% endif %}
                             <span class="project-tag">
                                 {{ project.get_project_type_display }} · {{ project.get_status_display }}
                             </span>
@@ -37,6 +42,11 @@
                                     <span class="tech-badge"><img src="https://cdn.simpleicons.org/{{ tech.icon }}" alt="" loading="lazy">{{ tech.name }}</span>
                                 {% endfor %}
                             </div>
+                            {% if project.project_url %}
+                                <p class="project-actions">
+                                    <a href="{{ project.project_url }}" class="button">Lihat Project</a>
+                                </p>
+                            {% endif %}
                             {% include "project_delete_modal.html" with project=project %}
                         </article>
                     {% empty %}
