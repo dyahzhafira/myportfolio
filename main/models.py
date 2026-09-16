@@ -51,6 +51,8 @@ class Project(models.Model):
         ]
     )
     tech_stack= models.JSONField(default=list)
+    project_url = models.URLField(blank=True)
+    project_image_url = models.URLField(blank=True, max_length=500)
 
     def __str__(self):
         return self.title

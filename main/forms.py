@@ -1,4 +1,4 @@
-from django.forms import ModelForm, TextInput, Textarea, Select
+from django.forms import ModelForm, TextInput, Textarea, Select, URLInput
 
 from main.models import Project
 
@@ -10,13 +10,17 @@ class ProjectForm(ModelForm):
             "description",
             "status",
             "project_type",
+            "project_url",
+            "project_image_url",
         ]
 
         labels = {
-            "title": "Nama Project",
-            "description": "Deskripsi Project",
+            "title": "Nama Proyek",
+            "description": "Deskripsi Proyek",
             "status": "Status",
-            "project_type": "Tipe Project",
+            "project_type": "Tipe Proyek",
+            "project_url": "URL Proyek",
+            "project_image_url": "URL Gambar Proyek",
         }
 
         widgets = {
@@ -28,10 +32,16 @@ class ProjectForm(ModelForm):
             ),
             "description": Textarea(
                 attrs={
-                    "placeholder": "Tell us ur project here...",
+                    "placeholder": "Ceritakan proyekmu",
                     "rows": 3,
                 }
             ),
             "status": Select(),
             "project_type": Select(),
+            "project_url": URLInput(
+                attrs={"placeholder": "https://github.com/username/repo"}
+            ),
+            "project_image_url": URLInput(
+                attrs={"placeholder": "https://drive.google.com/thumbnail?id=...&sz=w1000"}
+            ),
         }
