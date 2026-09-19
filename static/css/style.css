@@ -312,15 +312,6 @@ button:focus-visible,
     gap: 10px;
 }
 
-.project-image {
-    display: block;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 16 / 9;
-    object-fit: cover;
-    border-radius: var(--radius);
-}
-
 .project-card h2 a {
     color: var(--ink);
     text-decoration: none;
@@ -823,7 +814,7 @@ main {
     box-shadow: 2px 3px 8px rgba(58, 53, 48, 0.1);
 }
 
-/* Experience, Project, Admin, Forms*/
+/* ===== FINAL: unified page layout (Experience, Project, Admin, Forms) ===== */
 .projects-section {
     padding: 3.5rem 0 4.5rem;
     margin: 0;

@@ -23,11 +23,6 @@
                 <div class="projects-grid">
                     {% for project in project_list %}
                         <article class="project-card">
-                            {% if project.project_image_url %}
-                                <img src="{{ project.project_image_url }}"
-                                     alt="Gambar {{ project.title }}"
-                                     class="project-image">
-                            {% endif %}
                             <span class="project-tag">
                                 {{ project.get_project_type_display }} · {{ project.get_status_display }}
                             </span>
