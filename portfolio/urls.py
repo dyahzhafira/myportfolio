@@ -18,7 +18,5 @@ urlpatterns = [
         auth_views.LogoutView.as_view(),
         name="logout",
     ),
-        path("admin/", admin.site.urls),
-    path("", include("main.urls")),
     path("accounts/", include("django.contrib.auth.urls")),
 ]

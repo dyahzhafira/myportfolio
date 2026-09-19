@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block meta %}
+    <title>Admin Dashboard - {{ name }}</title>
+{% endblock meta %}
+
+{% block content %}
+    <main>
+        <section class="projects-section">
+            <div class="container">
+                <p class="section-kicker">Staff Area</p>
+                <div class="project-header">
+                    <h1>Admin Dashboard</h1>
+                </div>
+
+                <form method="get" action="{% url 'main:admin_dashboard' %}" class="project-search">
+                    <input type="search"
+                           name="q"
+                           value="{{ q }}"
+                           placeholder="Cari experience atau project"
+                           class="project-search__input"
+                           aria-label="Cari experience atau project">
+                    <button type="submit" class="button">Cari</button>
+                </form>
+
+                <div class="admin-block">
+                    <div class="project-header">
+                        <h2>Experiences</h2>
+                        <a href="{% url 'main:create_experience' %}" class="button">+ Tambah Experience</a>
+                    </div>
+
+                    <div class="projects-grid">
+                        {% for experience in experience_list %}
+                            <article class="project-card">
+                                {% if experience.thumbnail %}
+                                    <img
+                                        src="{{ experience.thumbnail }}"
+                                        alt="Thumbnail {{ experience.title }}"
+                                        class="project-thumbnail"
+                                    >
+                                {% endif %}
+
+                                <span class="project-tag">
+                                    {{ project.get_project_type_display }} · {{ project.get_status_display }}
+                                </span>
+
+                                <h3>{{ project.title }}</h3>
+                                <p class="project-description">{{ experience.description }}</p>
+                                <p class="project-description">
+                                    {% if experience.is_ongoing %}Sedang berlangsung{% else %}Selesai{% endif %}
+                                </p>
+                                <div class="card-actions">
+                                    <a href="{% url 'main:update_experience' experience.id %}" class="button">Edit</a>
+                                    {% url 'main:delete_experience' experience.id as delete_url %}
+                                    {% include "admin/delete_modal.html" with modal_id=experience.id item_title=experience.title item_kind="Experience" action=delete_url %}
+                                </div>
+                            </article>
+                        {% empty %}
+                            <p class="empty-state">Tidak ada experience.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="admin-block">
+                    <div class="project-header">
+                        <h2>Projects</h2>
+                        <a href="{% url 'main:create_project' %}" class="button">+ Tambah Project</a>
+                    </div>
+
+                    <div class="projects-grid">
+                        {% for project in project_list %}
+                            <article class="project-card">
+                                {% if project.thumbnail %}
+                                    <img
+                                        src="{{ project.thumbnail }}"
+                                        alt="Thumbnail {{ project.title }}"
+                                        class="project-thumbnail"
+                                    >
+                                {% endif %}
+
+                                <span class="project-tag">
+                                    {{ project.get_project_type_display }} · {{ project.get_status_display }}
+                                </span>
+
+                                <h3>{{ project.title }}</h3>
+                                <p class="project-description">{{ project.description }}</p>
+                                <div class="card-actions">
+                                    <a href="{% url 'main:update_project' project.slug %}" class="button">Edit</a>
+                                    {% url 'main:delete_project' project.slug as delete_url %}
+                                    {% include "admin/delete_modal.html" with modal_id=project.id item_title=project.title item_kind="Project" action=delete_url %}
+                                </div>
+                            </article>
+                        {% empty %}
+                            <p class="empty-state">Tidak ada project.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock content %}

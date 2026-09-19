@@ -1,4 +1,5 @@
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,28 +8,54 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:wght@700&family=La+Belle+Aurore&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     {% block meta %}{% endblock meta %}
 </head>
 <body>
-    <a href="#main-content" class="skip-link">Lewati ke konten utama</a>
+    <a href="#main-content" class="skip-link">
+        Lewati ke konten utama
+    </a>
 
     <header class="site-header">
         <div class="container">
-            <a href="{% url 'main:show_main' %}" class="brand handwritten">{{ name }}</a>
+            <a href="{% url 'main:show_main' %}" class="brand handwritten">
+                {{ name|default:"Dyah Zhafira" }}
+            </a>
             <nav>
                 <a href="{% url 'main:show_main' %}">Profile</a>
                 <a href="{% url 'main:show_experience' %}">Experience</a>
                 <a href="{% url 'main:show_project' %}">Project</a>
+
+                {% if user.is_authenticated %}
+                    {% if user.is_staff %}
+                        <a href="{% url 'main:admin_dashboard' %}">
+                            Admin Dashboard
+                        </a>
+                    {% endif %}
+
+                    <form method="POST" action="{% url 'logout' %}" class="nav-form">
+                        {% csrf_token %}
+                        <button type="submit" class="button-nav">
+                            Logout
+                        </button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}">Login</a>
+                {% endif %}
             </nav>
         </div>
     </header>
 
-    {% block content %}{% endblock content %}
+    <main id="main-content">
+        {% block content %}{% endblock content %}
+    </main>
 
     <footer class="site-footer">
         <div class="container">
-            <p class="handwritten">&copy; 2026 {{ name }}. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
+            <p class="handwritten">
+                &copy; 2026 {{ name|default:"Dyah Zhafira" }}.
+                Fakultas Ilmu Komputer, Universitas Indonesia.
+            </p>
         </div>
     </footer>
 </body>

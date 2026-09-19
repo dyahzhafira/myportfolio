@@ -1,35 +1,41 @@
 {% extends "base.html" %}
 {% block meta %}
-    <title>{{ name }}</title>
+    <title>Experience - {{ name }}</title>
 {% endblock meta %}
 {% block content %}
     <main>
-        <section class="experience-section" id="experience">
+        <section class="projects-section" id="experience-page">
             <div class="container">
-                <p class="section-kicker">Perjalanan saya sejauh ini</p>
-                <h1>Experience</h1>
+                <div class="project-header">
+                    <h1>Experience</h1>
+                </div>
 
-                <div class="experience-grid">
+                <form method="get" action="{% url 'main:show_experience' %}" class="project-search">
+                    <input type="search"
+                           name="title"
+                           value="{{ title_query }}"
+                           placeholder="Cari berdasarkan nama experience"
+                           class="project-search__input"
+                           aria-label="Cari berdasarkan nama experience">
+                    <button type="submit" class="button">Cari</button>
+                </form>
+
+                <div class="projects-grid">
                     {% for experience in experience_list %}
-                        <article class="experience-card">
-                            <span class="experience-category">
-                                {{ experience.get_category_display }}
+                        <article class="project-card">
+                            <span class="project-tag">
+                                {{ experience.get_category_display }} ·
+                                {% if experience.is_ongoing %}Sedang berlangsung{% else %}Selesai{% endif %}
                             </span>
                             <h2>{{ experience.title }}</h2>
-                            <p class="experience-description">
-                                {{ experience.description }}
-                            </p>
-
-                            {% if experience.is_ongoing %}
-                                <p class="experience-status">Sedang berlangsung</p>
-                            {% else %}
-                                <p class="experience-status">Selesai</p>
-                            {% endif %}
+                            <p class="project-description">{{ experience.description }}</p>
                         </article>
                     {% empty %}
-                        <p class="empty-state">
-                            Belum ada pengalaman yang ditambahkan.
-                        </p>
+                        {% if title_query %}
+                            <p class="empty-state">Tidak ada experience dengan nama tersebut.</p>
+                        {% else %}
+                            <p class="empty-state">Belum ada pengalaman yang ditambahkan.</p>
+                        {% endif %}
                     {% endfor %}
                 </div>
             </div>

@@ -111,3 +111,47 @@ slug = models.SlugField(unique=True)
 python manage.py makemigrations
 python manage.py migrate
 ```
+
+### FITUR TAMBAHAN
+
+Terdapat fitur tambahan untuk tugas tambahan berupa detail page untuk masing masing experience yang ada.
+
+### Tugas 3
+
+1. Jelaskan mengapa kita menggunakan `ModelForm` pada Django alih-alih membuat form HTML secara manual. Selain itu, jelaskan pula mengapa kita diwajibkan menambahkan `{% csrf_token %}` pada form tersebut!
+
+-> Menurut saya, `ModelForm` lebih praktis karena form dapat langsung terhubung dengan model yang saya gunakan, yaitu `Project`, sehingga field dan validasinya tidak perlu dibuat secara manual dari HTML. Selain itu melalui `ModelForm`, saya juga bisa menggunakan form yang sama untuk membuat dan mengupdate data project. Sedangkan `{% csrf_token %}` digunakan untuk memastikan request dari form memang berasal dari website dan mencegah CSRF.
+
+2. Pada Tutorial 03, kita membahas format data JSON dan XML. Mengapa JSON lebih disukai dalam pengembangan aplikasi web modern dibandingkan XML?
+
+-> Menurut saya pribadi, JSON memang lebih sederhana dan mudah dibaca dibandingkan XML. Dalam portfolio ini juga, data `Project` dan `Experience` juga saya sediakan dalam bentuk JSON, sehingga lebih mudah untuk data delivery dari backend ke halaman web. Struktur JSON juga lebih ringkas karena menggunakan key value dan tidak membutuhkan tag seperti XML.
+
+3. Jelaskan alur yang terjadi saat kamu menggunakan fungsi view untuk mengembalikan data portofoliomu dalam bentuk JSON. Mengapa kita perlu melakukan proses serialization pada model Django sebelum datanya dikembalikan?
+
+-> Pada portfolio ini, ketika user mengakses URL untuk data `Project`, request akan diteruskan dari `urls.py` ke fungsi view. View nantinya akan mengambil data `Project` dari model, lalu akan serialization agar data dapat diubah menjadi format JSON. Setelah itu, JSON return sebagai response dan dapat digunakan untuk menampilkan data project pada halaman portfolio. Serialization diperlukan karena data yang diambil dari Django masih object/queryset, sehingga perlu diubah jadi format yang bisa dikirim lewat HTTP.
+
+### AI Disclosure (Tugas 3)
+
+Di tugas 3 saya hanya menggunakan ChatGPT dengan scope tambahan sebagai berikut:
+
+- Penjelasan konsep, saya meminta AI untuk menjelaskan konsep seperti ModelForm, CRUD, authentication, authorization, JSON Data Delivery, dan hubungan antara model, form, view, URL, dan template.
+- Breakdown tugas & debugging, saya meminta AI untuk membantu membuat checklist tugas menjadi step by step dan membantu menganalisis error yang muncul selama pengerjaan.
+- Referensi implementasi, saya berdiskusi dengan AI mengenai beberapa pendekatan untuk authentication dan pembatasan akses admin. Implementasi akhirnya tetap saya sesuaikan dan test sendiri di local.
+- Saat authentication, AI sempat memberikan potongan cara implementasi dashboard. Namun, base authnya belum selesai, sehingga saya perlu debugging sendiri karena AI tidak memberikan solusi yang diperlukan.
+
+Berikut linknya: https://chatgpt.com/share/6aae66bc-dc30-83ec-b191-515584aa9044
+
+### FITUR TAMBAHAN
+
+- Authentication and Admin Dashboard
+- Menambahkan sistem login dan logout serta membatasi akses ke halaman admin dashboard
+- Admin-Only CRUD Access
+- Membatasi fitur Create, Update, dan Delete agar hanya dapat digunakan oleh pengguna yang memiliki akses admin
+
+Dokumentasi akun admin secara lokal, jalankan:
+python manage.py migrate
+python manage.py createsuperuser
+
+Untuk mencoba website yang sudah di-deploy, dapat menggunakan demo account berikut:
+Username: demo
+Password: demo123

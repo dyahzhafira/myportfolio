@@ -36,7 +36,6 @@ def _unique_slug(title):
     return slug
 
 
-# ---------- Public pages ----------
 
 def show_main(request):
     context = {
@@ -115,7 +114,6 @@ def show_project_detail(request, slug):
     )
 
 
-# ---------- Admin panel (staff only) ----------
 
 @staff_required
 def admin_dashboard(request):
