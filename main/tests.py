@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
-
+from django.contrib.auth import get_user_model
 from main.models import Experience, Project
 
 
@@ -115,3 +115,130 @@ class MainTest(TestCase):
         response = self.client.get(reverse("main:show_project_detail", args=["slug-yang-gak-ada"]))
 
         self.assertEqual(response.status_code, 404)
+
+class ExperienceAdminTests(TestCase):
+
+    def setUp(self):
+        User = get_user_model()
+
+        self.user = User.objects.create_user(
+            username="test_admin",
+            password="test_password_123",
+            is_staff=True,
+        )
+
+        self.experience = Experience.objects.create(
+            title="Test Experience",
+            description="Test description",
+            category="research",
+            started_at="2026-01-01T09:00:00Z",
+            ended_at=None,
+        )
+
+    def test_admin_dashboard_requires_login(self):
+        response = self.client.get(
+            reverse("main:admin_dashboard")
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+    def test_admin_dashboard_accessible_for_staff(self):
+        self.client.login(
+            username="test_admin",
+            password="test_password_123",
+        )
+
+        response = self.client.get(
+            reverse("main:admin_dashboard")
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_create_experience(self):
+        self.client.login(
+            username="test_admin",
+            password="test_password_123",
+        )
+
+        response = self.client.post(
+            reverse("main:create_experience"),
+            {
+                "title": "New Experience",
+                "description": "New description",
+                "category": "internship",
+                "thumbnail": "",
+                "started_at": "2026-02-01T09:00",
+                "ended_at": "",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        self.assertTrue(
+            Experience.objects.filter(
+                title="New Experience"
+            ).exists()
+        )
+
+    def test_update_experience(self):
+        self.client.login(
+            username="test_admin",
+            password="test_password_123",
+        )
+
+        response = self.client.post(
+            reverse(
+                "main:update_experience",
+                args=[self.experience.id],
+            ),
+            {
+                "title": "Updated Experience",
+                "description": "Updated description",
+                "category": "research",
+                "thumbnail": "",
+                "started_at": "2026-01-01T09:00",
+                "ended_at": "",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        self.experience.refresh_from_db()
+
+        self.assertEqual(
+            self.experience.title,
+            "Updated Experience",
+        )
+
+    def test_delete_experience(self):
+        self.client.login(
+            username="test_admin",
+            password="test_password_123",
+        )
+
+        response = self.client.post(
+            reverse(
+                "main:delete_experience",
+                args=[self.experience.id],
+            )
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        self.assertFalse(
+            Experience.objects.filter(
+                id=self.experience.id
+            ).exists()
+        )
+
+    def test_experience_json(self):
+        response = self.client.get(
+            reverse("main:get_experiences_json")
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(
+            response["Content-Type"],
+            "application/json",
+        )
