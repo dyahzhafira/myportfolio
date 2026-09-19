@@ -41,10 +41,10 @@
                                 {% endif %}
 
                                 <span class="project-tag">
-                                    {{ project.get_project_type_display }} · {{ project.get_status_display }}
+                                    {{ experience.get_category_display }}
                                 </span>
 
-                                <h3>{{ project.title }}</h3>
+                                <h3>{{ experience.title }}</h3>
                                 <p class="project-description">{{ experience.description }}</p>
                                 <p class="project-description">
                                     {% if experience.is_ongoing %}Sedang berlangsung{% else %}Selesai{% endif %}
@@ -72,7 +72,7 @@
                             <article class="project-card">
                                 {% if project.thumbnail %}
                                     <img
-                                        src="{{ project.thumbnail }}"
+                                        src="{{ project.project_image_url }}"
                                         alt="Thumbnail {{ project.title }}"
                                         class="project-thumbnail"
                                     >

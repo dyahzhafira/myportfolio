@@ -13,6 +13,8 @@ class ProjectForm(ModelForm):
             "description",
             "status",
             "project_type",
+            "project_url",
+            "project_image_url",
         ]
 
         labels = {
@@ -31,6 +33,12 @@ class ProjectForm(ModelForm):
             ),
             "status": Select(),
             "project_type": Select(),
+            "project_url": URLInput(
+                attrs={"placeholder": "https://github.com/username/repo"}
+            ),
+            "project_image_url": URLInput(
+                attrs={"placeholder": "https://drive.google.com/thumbnail?id=...&sz=w1000"}
+            ),
         }
 
 
