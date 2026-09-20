@@ -3,7 +3,6 @@
     <title>{{ name }}</title>
 {% endblock meta %}
 {% block content %}
-    <main>
         <section id="project-detail">
             <div class="container">
                 <a href="{% url 'main:show_project' %}" class="back-link">&larr; Kembali ke Projects</a>
@@ -22,5 +21,4 @@
                 </article>
             </div>
         </section>
-    </main>
 {% endblock content %}

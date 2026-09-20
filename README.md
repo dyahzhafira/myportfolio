@@ -2,6 +2,28 @@ Nama    : Dyah Zhafira Wibowo
 NPM     : 2506623723
 Kelas   : PBP E
 
+### Deskripsi Proyek
+
+Website portofolio pribadi berbasis Django. Fitur: halaman Profile, Experience, Project (beserta detail), dashboard admin untuk CRUD Experience dan Project (khusus staff), pencarian, dan data tersedia dalam JSON (`/api/experiences/`, `/api/projects/`).
+
+### Setup Lokal
+
+1. Clone repo dan masuk ke foldernya.
+2. Buat dan aktifkan virtual environment: `python -m venv .venv`, lalu `.venv\Scripts\activate` (Windows) atau `source .venv/bin/activate`.
+3. Install dependensi: `pip install -r requirements.txt`.
+4. Jalankan migrasi: `python manage.py migrate`.
+5. Buat akun admin: `python manage.py createsuperuser`.
+6. Jalankan server: `python manage.py runserver`, lalu buka `http://localhost:8000/`.
+7. Jalankan test: `python manage.py test main`.
+
+Login admin di `/login/`, dashboard di `/admin-panel/`.
+
+### Progres Mingguan
+
+- Tugas 1: halaman statis HTML5 dan CSS3, deploy ke PWS.
+- Tugas 2: model Experience dan Project, migrasi, halaman dinamis, halaman detail berbasis slug, unit test.
+- Tugas 3: template `base.html`, ModelForm, CRUD Experience dan Project khusus staff, JSON API, autentikasi, pencarian.
+
 ### TUGAS 1
 1. pada Tutorial dan tugas 1, Anda diberi kebebasan untuk menentukan website tampilan dari website portfolio Anda. Saat anda merancang struktur HTML yang digunakan, apakah Anda menggunakan elemen semantik HTML5, seperti `<section>`. `<article>`, atau `<aside>`? Jika iya, bagaimana elemen tersebut membantu Anda dalam membuat static web? Jika tidak, mengapa tanpa elemen tersebut sudah memenuhi kebutuhan Anda?
 
@@ -120,26 +142,32 @@ Terdapat fitur tambahan untuk tugas tambahan berupa detail page untuk masing mas
 
 1. Jelaskan mengapa kita menggunakan `ModelForm` pada Django alih-alih membuat form HTML secara manual. Selain itu, jelaskan pula mengapa kita diwajibkan menambahkan `{% csrf_token %}` pada form tersebut!
 
--> Menurut saya, `ModelForm` lebih praktis karena form dapat langsung terhubung dengan model yang saya gunakan, yaitu `Project`, sehingga field dan validasinya tidak perlu dibuat secara manual dari HTML. Selain itu melalui `ModelForm`, saya juga bisa menggunakan form yang sama untuk membuat dan mengupdate data project. Sedangkan `{% csrf_token %}` digunakan untuk memastikan request dari form memang berasal dari website dan mencegah CSRF.
+-> Menurut saya, `ModelForm` lebih praktis karena form dapat langsung terhubung dengan model yang saya gunakan, yaitu `Experience`, sehingga field dan validasinya tidak perlu dibuat secara manual dari HTML. Selain itu melalui `ModelForm`, saya juga bisa menggunakan form yang sama untuk membuat dan mengupdate data experience. Sedangkan `{% csrf_token %}` digunakan untuk memastikan request dari form memang berasal dari website dan mencegah CSRF.
+
+Pada bagian Experience, `ExperienceForm` dibuat langsung dari model `Experience`. Field, tipe input (select category, URL thumbnail, datetime-local tanggal), label, dan validasi (wajib diisi, max_length, pilihan yang valid) otomatis dari model, sehingga saya tidak perlu menulis HTML dan validasi satu per satu. Form yang sama juga dipakai untuk create dan update (dengan `instance=experience`). `{% csrf_token %}` wajib karena tanpa itu situs lain bisa membuat browser admin yang sedang login mengirim POST tanpa sepengetahuannya, misalnya menghapus atau mengubah Experience. Django menolak POST yang tidak membawa token valid, dan domain PWS didaftarkan di `CSRF_TRUSTED_ORIGINS`.
 
 2. Pada Tutorial 03, kita membahas format data JSON dan XML. Mengapa JSON lebih disukai dalam pengembangan aplikasi web modern dibandingkan XML?
 
--> Menurut saya pribadi, JSON memang lebih sederhana dan mudah dibaca dibandingkan XML. Dalam portfolio ini juga, data `Project` dan `Experience` juga saya sediakan dalam bentuk JSON, sehingga lebih mudah untuk data delivery dari backend ke halaman web. Struktur JSON juga lebih ringkas karena menggunakan key value dan tidak membutuhkan tag seperti XML.
+-> Menurut saya pribadi, JSON memang lebih sederhana dan mudah dibaca dibandingkan XML. Dalam portfolio ini juga, data `Project` dan `Experience` juga saya sediakan dalam bentuk JSON, sehingga lebih mudah untuk data delivery dari backend ke halaman web. Struktur JSON juga lebih ringkas karena menggunakan key value dan tidak membutuhkan tag seperti XML. JSON juga ga butuh tag pembuka dan penutup, lebih mudah dibaca, dan cepat di-parse. Pada portofolio ini, `/api/experiences/` return list objek berisi `model`, `pk`, dan `fields`, yang mudah dipakai frontend. XML lebih panjang dan butuh parser yang lebih berat.
 
 3. Jelaskan alur yang terjadi saat kamu menggunakan fungsi view untuk mengembalikan data portofoliomu dalam bentuk JSON. Mengapa kita perlu melakukan proses serialization pada model Django sebelum datanya dikembalikan?
 
--> Pada portfolio ini, ketika user mengakses URL untuk data `Project`, request akan diteruskan dari `urls.py` ke fungsi view. View nantinya akan mengambil data `Project` dari model, lalu akan serialization agar data dapat diubah menjadi format JSON. Setelah itu, JSON return sebagai response dan dapat digunakan untuk menampilkan data project pada halaman portfolio. Serialization diperlukan karena data yang diambil dari Django masih object/queryset, sehingga perlu diubah jadi format yang bisa dikirim lewat HTTP.
+-> Pada portfolio ini, saat `/api/experiences/?title=...` diakses, `urls.py` meneruskan request ke `get_experiences_json`. View mengambil `Experience` yang diurutkan berdasarkan `started_at`, memfilter judul lewat `filter_by_title` (di `services.py`), lalu `serializers.serialize("json", ...)` mengubahnya menjadi teks JSON `HttpResponse` dengan `content_type="application/json"`. Halaman `/experience/` memakai hasil yang sama, `show_experience` men-decode JSON itu, `serializers.deserialize` mengembalikannya menjadi objek `Experience`, lalu di-render ke `experience.html`. Serialization diperlukan karena queryset adalah objek Python (berisi UUID, datetime, dan koneksi database) yang tidak bisa dikirim lewat HTTP, sedangkan HTTP hanya membawa teks atau byte, jadi datanya harus diubah ke format standar yang bisa dibaca client mana pun.
 
 ### AI Disclosure (Tugas 3)
+Tools: ChatGPT
 
-Di tugas 3 saya hanya menggunakan ChatGPT dengan scope tambahan sebagai berikut:
+Bagian yang dibantu:
+- ChatGPT: breakdown checklist, penjelasan konsep (ModelForm, CRUD, authentication, authorization, JSON data delivery), diskusi batas akses admin, refactor `views.py` dan `services.py`, serta bantu debugging CRUD
 
-- Penjelasan konsep, saya meminta AI untuk menjelaskan konsep seperti ModelForm, CRUD, authentication, authorization, JSON Data Delivery, dan hubungan antara model, form, view, URL, dan template.
-- Breakdown tugas & debugging, saya meminta AI untuk membantu membuat checklist tugas menjadi step by step dan membantu menganalisis error yang muncul selama pengerjaan.
-- Referensi implementasi, saya berdiskusi dengan AI mengenai beberapa pendekatan untuk authentication dan pembatasan akses admin. Implementasi akhirnya tetap saya sesuaikan dan test sendiri di local.
-- Saat authentication, AI sempat memberikan potongan cara implementasi dashboard. Namun, base authnya belum selesai, sehingga saya perlu debugging sendiri karena AI tidak memberikan solusi yang diperlukan.
+Strategi prompting: saya meminta breakdown langkah dan penjelasan konsep dulu sebelum kode
 
-Berikut linknya: https://chatgpt.com/share/6aae66bc-dc30-83ec-b191-515584aa9044
+Keterbatasan AI dan perbaikan manual:
+- Potongan dashboard dari ChatGPT belum punya dasar autentikasi yang lengkap (login, redirect, izin staff), jadi saya debug sendiri dan mengatur `LOGIN_URL`, `LOGIN_REDIRECT_URL`, dan `LOGOUT_REDIRECT_URL`.
+- AI kasih code `project_url` dan `project_image_url` di form padahal model di branch saya belum punya field itu, sehingga muncul `FieldError`. Sehingga, saya cek model dan sesuain form dengan model yang ada.
+- Di akhir, terdapat sisa merge conflict yg menyebabkan `portfolio/urls.py` berisi route duplikat dan `<main>` bersarang. Sehingga, saya minta bantu dibersihkan dan memverifikasi hasilnya dengan test.
+
+Link chat ChatGPT: https://chatgpt.com/share/6aae66bc-dc30-83ec-b191-515584aa9044
 
 ### FITUR TAMBAHAN
 

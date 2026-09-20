@@ -1,25 +1,30 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
-from django.core import serializers
-from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.utils.text import slugify
 from django.views.decorators.http import require_POST
 
 from main.forms import ExperienceForm, ProjectForm
 from main.models import Experience, Project
+from main.services import filter_by_title, json_response, objects_from_json, unique_slug
 
 OWNER_NAME = "Dyah Zhafira"
 
 
 def staff_required(view_func):
+    """batasi view untuk user staff, sisanya ke login"""
     return user_passes_test(
         lambda user: user.is_authenticated and user.is_staff,
         login_url="login",
     )(view_func)
 
 
+def _title_query(request):
+    """ambil keyword title dari query string."""
+    return request.GET.get("title", "").strip()
+
+
 def _admin_form(request, form, page_title):
+    """render form admin tambah atau ubah data."""
     return render(
         request,
         "admin/form.html",
@@ -27,17 +32,26 @@ def _admin_form(request, form, page_title):
     )
 
 
-def _unique_slug(title):
-    base = slugify(title) or "project"
-    slug, n = base, 2
-    while Project.objects.filter(slug=slug).exists():
-        slug = f"{base}-{n}"
-        n += 1
-    return slug
+def _handle_form(request, form, page_title, success_message):
+    """save form if valid"""
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, success_message)
+        return redirect("main:admin_dashboard")
+    return _admin_form(request, form, page_title)
 
 
+def _delete_and_redirect(instance, success_message, request):
+    """hapus objek return to dashboard + success message"""
+    instance.delete()
+    messages.success(request, success_message)
+    return redirect("main:admin_dashboard")
+
+
+# Public pages
 
 def show_main(request):
+    """main page"""
     context = {
         "name": "Dyah Zhafira Wibowo",
         "npm": "2506623723",
@@ -50,62 +64,38 @@ def show_main(request):
 
 
 def get_experiences_json(request):
-    title_query = request.GET.get("title", "").strip()
-    experiences = Experience.objects.all().order_by("-started_at")
-
-    if title_query:
-        experiences = experiences.filter(title__icontains=title_query)
-
-    return HttpResponse(
-        serializers.serialize("json", experiences),
-        content_type="application/json",
-    )
+    """return data Experience dalam JSON"""
+    queryset = Experience.objects.order_by("-started_at")
+    return json_response(filter_by_title(queryset, _title_query(request)))
 
 
 def show_experience(request):
-    json_response = get_experiences_json(request)
-    experiences = [
-        item.object
-        for item in serializers.deserialize("json", json_response.content.decode("utf-8"))
-    ]
-
+    """show Experience dari JSON yang di deserialize + search"""
     context = {
         "name": OWNER_NAME,
-        "experience_list": experiences,
-        "title_query": request.GET.get("title", "").strip(),
+        "experience_list": objects_from_json(get_experiences_json(request)),
+        "title_query": _title_query(request),
     }
     return render(request, "experience.html", context)
 
 
 def get_projects_json(request):
-    title_query = request.GET.get("title", "").strip()
-    projects = Project.objects.all()
-
-    if title_query:
-        projects = projects.filter(title__icontains=title_query)
-
-    return HttpResponse(
-        serializers.serialize("json", projects),
-        content_type="application/json",
-    )
+    """return data Project dalam JSON"""
+    return json_response(filter_by_title(Project.objects.all(), _title_query(request)))
 
 
 def show_project(request):
-    json_response = get_projects_json(request)
-    projects = [
-        item.object
-        for item in serializers.deserialize("json", json_response.content.decode("utf-8"))
-    ]
-
+    """show Project dari JSON yang di deserialize + search"""
     context = {
         "name": OWNER_NAME,
-        "project_list": projects,
-        "title_query": request.GET.get("title", "").strip(),
+        "project_list": objects_from_json(get_projects_json(request)),
+        "title_query": _title_query(request),
     }
     return render(request, "project.html", context)
 
 
 def show_project_detail(request, slug):
+    """halaman detail satu Project based on slug"""
     project = get_object_or_404(Project, slug=slug)
     return render(
         request,
@@ -114,21 +104,16 @@ def show_project_detail(request, slug):
     )
 
 
+# Admin panel (staff only)
 
 @staff_required
 def admin_dashboard(request):
+    """dashboard staff kelola Experience & Project + search"""
     q = request.GET.get("q", "").strip()
-    experiences = Experience.objects.all().order_by("-started_at")
-    projects = Project.objects.all().order_by("title")
-
-    if q:
-        experiences = experiences.filter(title__icontains=q)
-        projects = projects.filter(title__icontains=q)
-
     context = {
         "name": OWNER_NAME,
-        "experience_list": experiences,
-        "project_list": projects,
+        "experience_list": filter_by_title(Experience.objects.order_by("-started_at"), q),
+        "project_list": filter_by_title(Project.objects.order_by("title"), q),
         "q": q,
     }
     return render(request, "admin/dashboard.html", context)
@@ -136,45 +121,35 @@ def admin_dashboard(request):
 
 @staff_required
 def create_experience(request):
+    """tambah Experience lewat form"""
     form = ExperienceForm(request.POST or None)
-
-    if request.method == "POST" and form.is_valid():
-        form.save()
-        messages.success(request, "Experience berhasil ditambahkan!")
-        return redirect("main:admin_dashboard")
-
-    return _admin_form(request, form, "Add Experience")
+    return _handle_form(request, form, "Add Experience", "Experience berhasil ditambahkan!")
 
 
 @staff_required
 def update_experience(request, experience_id):
+    """ubah Experience lewat form"""
     experience = get_object_or_404(Experience, id=experience_id)
     form = ExperienceForm(request.POST or None, instance=experience)
-
-    if request.method == "POST" and form.is_valid():
-        form.save()
-        messages.success(request, "Experience berhasil diperbarui!")
-        return redirect("main:admin_dashboard")
-
-    return _admin_form(request, form, "Edit Experience")
+    return _handle_form(request, form, "Edit Experience", "Experience berhasil diperbarui!")
 
 
 @staff_required
 @require_POST
 def delete_experience(request, experience_id):
+    """hapus Experience cuman lewat POST"""
     experience = get_object_or_404(Experience, id=experience_id)
-    experience.delete()
-    messages.success(request, "Experience berhasil dihapus!")
-    return redirect("main:admin_dashboard")
+    return _delete_and_redirect(experience, "Experience berhasil dihapus!", request)
 
 
 @staff_required
 def create_project(request):
+    """tambah Project lewat form, slug otomatis dari judul"""
     form = ProjectForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():
         project = form.save(commit=False)
-        project.slug = _unique_slug(project.title)
+        project.slug = unique_slug(project.title)
         project.tech_stack = []
         project.save()
         messages.success(request, "Project berhasil ditambahkan!")
@@ -185,21 +160,15 @@ def create_project(request):
 
 @staff_required
 def update_project(request, slug):
+    """ubah Project lewat form"""
     project = get_object_or_404(Project, slug=slug)
     form = ProjectForm(request.POST or None, instance=project)
-
-    if request.method == "POST" and form.is_valid():
-        form.save()
-        messages.success(request, "Project berhasil diperbarui!")
-        return redirect("main:admin_dashboard")
-
-    return _admin_form(request, form, "Edit Project")
+    return _handle_form(request, form, "Edit Project", "Project berhasil diperbarui!")
 
 
 @staff_required
 @require_POST
 def delete_project(request, slug):
+    """hapus Project lewat POST aja"""
     project = get_object_or_404(Project, slug=slug)
-    project.delete()
-    messages.success(request, "Project berhasil dihapus!")
-    return redirect("main:admin_dashboard")
+    return _delete_and_redirect(project, "Project berhasil dihapus!", request)
