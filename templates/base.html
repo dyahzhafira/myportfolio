@@ -27,20 +27,22 @@
                 <a href="{% url 'main:show_project' %}">Project</a>
 
                 {% if user.is_authenticated %}
-                    {% if user.is_staff %}
+                    <span class="nav-user">{{ user.username }}</span>
+                    {% if user.is_superuser %}
                         <a href="{% url 'main:admin_dashboard' %}">
                             Admin Dashboard
                         </a>
                     {% endif %}
 
-                    <form method="POST" action="{% url 'logout' %}" class="nav-form">
+                    <form method="POST" action="{% url 'main:logout' %}" class="nav-form">
                         {% csrf_token %}
                         <button type="submit" class="button-nav">
                             Logout
                         </button>
                     </form>
                 {% else %}
-                    <a href="{% url 'login' %}">Login</a>
+                    <a href="{% url 'main:login' %}">Login</a>
+                    <a href="{% url 'main:register' %}">Register</a>
                 {% endif %}
             </nav>
         </div>

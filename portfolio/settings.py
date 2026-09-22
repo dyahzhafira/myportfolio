@@ -147,6 +147,6 @@ WHITENOISE_USE_FINDERS = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CSRF_TRUSTED_ORIGINS = ["https://dyah-zhafira-myportfolio.pws.cs.ui.ac.id"]
-LOGIN_URL = "/accounts/login/"
+LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = "/admin-panel/"
 LOGOUT_REDIRECT_URL = "/"

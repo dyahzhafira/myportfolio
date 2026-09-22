@@ -125,6 +125,7 @@ class ExperienceAdminTests(TestCase):
             username="test_admin",
             password="test_password_123",
             is_staff=True,
+            is_superuser=True,
         )
 
         self.experience = Experience.objects.create(
@@ -242,3 +243,58 @@ class ExperienceAdminTests(TestCase):
             response["Content-Type"],
             "application/json",
         )
+
+
+class AuthTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user(username="biasa", password="pw_test_12345")
+        self.owner = User.objects.create_superuser(username="owner", password="pw_test_12345")
+        self.project = Project.objects.create(
+            title="P", slug="p", description="d", status="progress", project_type="individual"
+        )
+
+    def test_register_creates_user_and_redirects_to_login(self):
+        response = self.client.post(
+            reverse("main:register"),
+            {"username": "baru", "password1": "kata_sandi_kuat_9", "password2": "kata_sandi_kuat_9"},
+        )
+        self.assertRedirects(response, reverse("main:login"))
+        self.assertTrue(get_user_model().objects.filter(username="baru").exists())
+
+    def test_login_sets_last_login_cookie_and_logout_deletes_it(self):
+        response = self.client.post(
+            reverse("main:login"), {"username": "biasa", "password": "pw_test_12345"}
+        )
+        self.assertRedirects(response, reverse("main:show_main"))
+        self.assertIn("last_login", response.cookies)
+        response = self.client.post(reverse("main:logout"))
+        self.assertEqual(response.cookies["last_login"].value, "")
+
+    def test_regular_user_gets_403_on_owner_pages(self):
+        self.client.login(username="biasa", password="pw_test_12345")
+        self.assertEqual(self.client.get(reverse("main:create_project")).status_code, 403)
+
+    def test_anonymous_redirected_to_login(self):
+        response = self.client.get(reverse("main:create_project"))
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.url.startswith("/login/"))
+
+    def test_owner_can_open_create_project(self):
+        self.client.login(username="owner", password="pw_test_12345")
+        self.assertEqual(self.client.get(reverse("main:create_project")).status_code, 200)
+
+    def test_toggle_star(self):
+        url = reverse("main:toggle_star", args=[self.project.id])
+        self.assertEqual(self.client.post(url).status_code, 302)  # anon -> login
+        self.assertEqual(self.project.starred_by.count(), 0)
+        self.client.login(username="biasa", password="pw_test_12345")
+        self.client.post(url)
+        self.assertEqual(self.project.starred_by.count(), 1)
+        self.client.post(url)
+        self.assertEqual(self.project.starred_by.count(), 0)
+
+    def test_api_uses_usernames_not_ids(self):
+        self.project.starred_by.add(self.user)
+        response = self.client.get(reverse("main:get_projects_json"))
+        self.assertIn([["biasa"]], [item["fields"]["starred_by"] for item in response.json()])

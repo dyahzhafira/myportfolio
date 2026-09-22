@@ -885,3 +885,60 @@ main {
     background: var(--rose-text);
     border-color: var(--rose-text);
 }
+
+/* Auth: navbar user, messages, helper text */
+.nav-user {
+    color: var(--rose-text);
+    font-weight: 700;
+}
+
+.form-message {
+    margin-bottom: 1rem;
+    color: var(--rose-text);
+}
+
+.form-help {
+    margin-top: 0.3rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.form-help ul {
+    padding-left: 1.2rem;
+}
+
+.auth-switch {
+    margin-top: 1rem;
+}
+
+.last-login {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* Star button */
+.star-form {
+    display: inline;
+}
+
+.button-star {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--ink);
+    border-color: var(--ink);
+    cursor: pointer;
+}
+
+.button-star.is-starred {
+    background: var(--rose-bold);
+    border-color: var(--rose-bold);
+}
+
+.star-count {
+    padding: 0.05rem 0.4rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.25);
+    font-size: 0.8rem;
+}

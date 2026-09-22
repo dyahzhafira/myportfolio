@@ -16,7 +16,7 @@ def filter_by_title(queryset, query):
 def json_response(queryset):
     """serialize queryset model to HttpResponse format JSON"""
     return HttpResponse(
-        serializers.serialize("json", queryset),
+        serializers.serialize("json", queryset, use_natural_foreign_keys=True),
         content_type="application/json",
     )
 

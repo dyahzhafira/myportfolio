@@ -1,5 +1,11 @@
+import datetime
+from functools import wraps
+
 from django.contrib import messages
-from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -10,12 +16,17 @@ from main.services import filter_by_title, json_response, objects_from_json, uni
 OWNER_NAME = "Dyah Zhafira"
 
 
-def staff_required(view_func):
-    """batasi view untuk user staff, sisanya ke login"""
-    return user_passes_test(
-        lambda user: user.is_authenticated and user.is_staff,
-        login_url="login",
-    )(view_func)
+def owner_required(view_func):
+    """belum login -> redirect ke login, login tapi bukan superuser -> 403"""
+
+    @wraps(view_func)
+    @login_required(login_url="/login/")
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_superuser:
+            raise PermissionDenied
+        return view_func(request, *args, **kwargs)
+
+    return wrapper
 
 
 def _title_query(request):
@@ -52,7 +63,11 @@ def _delete_and_redirect(instance, success_message, request):
 
 def show_main(request):
     """main page"""
+    last_login = request.COOKIES.get(
+        "last_login", "Belum ada sesi login / Cookie tidak ditemukan"
+    )
     context = {
+        "last_login": last_login,
         "name": "Dyah Zhafira Wibowo",
         "npm": "2506623723",
         "study_program": "S1 Ilmu Komputer",
@@ -104,11 +119,65 @@ def show_project_detail(request, slug):
     )
 
 
-# Admin panel (staff only)
+# Auth
 
-@staff_required
+def register(request):
+    """daftar akun baru pakai UserCreationForm"""
+    form = UserCreationForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Akun berhasil dibuat. Silakan login.")
+        return redirect("main:login")
+
+    return render(request, "register.html", {"name": OWNER_NAME, "form": form})
+
+
+def login_user(request):
+    """login + set cookie last_login"""
+    form = AuthenticationForm(request, data=request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        login(request, form.get_user())
+        response = redirect("main:show_main")
+        response.set_cookie(
+            "last_login", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        )
+        return response
+
+    return render(request, "login.html", {"name": OWNER_NAME, "form": form})
+
+
+@require_POST
+def logout_user(request):
+    """logout + hapus cookie last_login"""
+    logout(request)
+    response = redirect("main:show_main")
+    response.delete_cookie("last_login")
+    return response
+
+
+# Star (semua akun yang login)
+
+@login_required(login_url="/login/")
+def toggle_star(request, project_id):
+    """beri/batalkan star pada Project, hanya lewat POST"""
+    project = get_object_or_404(Project, pk=project_id)
+
+    if request.method == "POST":
+        if request.user in project.starred_by.all():
+            project.starred_by.remove(request.user)
+        else:
+            project.starred_by.add(request.user)
+
+    return redirect("main:show_project")
+
+
+# Admin panel (owner/superuser only)
+
+@owner_required
 def admin_dashboard(request):
-    """dashboard staff kelola Experience & Project + search"""
+    """dashboard owner kelola Experience & Project + search"""
     q = request.GET.get("q", "").strip()
     context = {
         "name": OWNER_NAME,
@@ -119,14 +188,14 @@ def admin_dashboard(request):
     return render(request, "admin/dashboard.html", context)
 
 
-@staff_required
+@owner_required
 def create_experience(request):
     """tambah Experience lewat form"""
     form = ExperienceForm(request.POST or None)
     return _handle_form(request, form, "Add Experience", "Experience berhasil ditambahkan!")
 
 
-@staff_required
+@owner_required
 def update_experience(request, experience_id):
     """ubah Experience lewat form"""
     experience = get_object_or_404(Experience, id=experience_id)
@@ -134,7 +203,7 @@ def update_experience(request, experience_id):
     return _handle_form(request, form, "Edit Experience", "Experience berhasil diperbarui!")
 
 
-@staff_required
+@owner_required
 @require_POST
 def delete_experience(request, experience_id):
     """hapus Experience cuman lewat POST"""
@@ -142,7 +211,7 @@ def delete_experience(request, experience_id):
     return _delete_and_redirect(experience, "Experience berhasil dihapus!", request)
 
 
-@staff_required
+@owner_required
 def create_project(request):
     """tambah Project lewat form, slug otomatis dari judul"""
     form = ProjectForm(request.POST or None)
@@ -158,7 +227,7 @@ def create_project(request):
     return _admin_form(request, form, "Add Project")
 
 
-@staff_required
+@owner_required
 def update_project(request, slug):
     """ubah Project lewat form"""
     project = get_object_or_404(Project, slug=slug)
@@ -166,7 +235,7 @@ def update_project(request, slug):
     return _handle_form(request, form, "Edit Project", "Project berhasil diperbarui!")
 
 
-@staff_required
+@owner_required
 @require_POST
 def delete_project(request, slug):
     """hapus Project lewat POST aja"""

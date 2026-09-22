@@ -37,6 +37,7 @@
                                     <span class="tech-badge"><img src="https://cdn.simpleicons.org/{{ tech.icon }}" alt="" loading="lazy">{{ tech.name }}</span>
                                 {% endfor %}
                             </div>
+                            {% include "components/project_star.html" with project=project %}
                         </article>
                     {% empty %}
                         {% if title_query %}
