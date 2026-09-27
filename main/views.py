@@ -16,22 +16,37 @@ from main.services import filter_by_title, json_response, objects_from_json, uni
 OWNER_NAME = "Dyah Zhafira"
 
 
-def owner_required(view_func):
-    """belum login -> redirect ke login, login tapi bukan superuser -> 403"""
+def role_required(check):
+    """
+    Factory decorator: belum login -> redirect ke login, login tapi `check(user)`
+    False -> 403. Dipakai buat bikin `owner_required` dan `editor_or_owner_required`
+    tanpa duplikasi wrapper login_required + PermissionDenied di tiap decorator.
+    """
 
-    @wraps(view_func)
-    @login_required(login_url="/login/")
-    def wrapper(request, *args, **kwargs):
-        if not request.user.is_superuser:
-            raise PermissionDenied
-        return view_func(request, *args, **kwargs)
+    def decorator(view_func):
+        @wraps(view_func)
+        @login_required(login_url="/login/")
+        def wrapper(request, *args, **kwargs):
+            if not check(request.user):
+                raise PermissionDenied
+            return view_func(request, *args, **kwargs)
 
-    return wrapper
+        return wrapper
+
+    return decorator
+
+owner_required = role_required(lambda user: user.is_superuser)
+editor_or_owner_required = role_required(
+    lambda user: user.is_superuser or user.groups.filter(name="Editor").exists()
+)
 
 
 def _title_query(request):
     """ambil keyword title dari query string."""
     return request.GET.get("title", "").strip()
+
+def _is_editor(request):
+    return request.user.is_authenticated and request.user.groups.filter(name="Editor").exists()
 
 
 def _admin_form(request, form, page_title):
@@ -95,16 +110,29 @@ def show_experience(request):
 
 
 def get_projects_json(request):
-    """return data Project dalam JSON"""
-    return json_response(filter_by_title(Project.objects.all(), _title_query(request)))
+    """return data Project dalam JSON, tanpa daftar user yang nge-star"""
+    return json_response(
+        filter_by_title(Project.objects.all(), _title_query(request)),
+        exclude=["starred_by"],
+    )
 
 
 def show_project(request):
-    """show Project dari JSON yang di deserialize + search"""
+    """show Project dari JSON yang di deserialize + search, bisa diurutkan by star"""
+    project_list = objects_from_json(get_projects_json(request))
+    sort_by = request.GET.get("sort", "")
+
+    if sort_by == "star":
+        project_list = sorted(
+            project_list, key=lambda project: project.starred_by.count(), reverse=True
+        )
+
     context = {
         "name": OWNER_NAME,
-        "project_list": objects_from_json(get_projects_json(request)),
+        "project_list": project_list,
         "title_query": _title_query(request),
+        "sort_by": sort_by,
+        "is_editor": _is_editor(request),
     }
     return render(request, "project.html", context)
 
@@ -115,7 +143,7 @@ def show_project_detail(request, slug):
     return render(
         request,
         "project_detail.html",
-        {"name": OWNER_NAME, "project": project},
+        {"name": OWNER_NAME, "project": project, "is_editor": _is_editor(request)},
     )
 
 
@@ -175,7 +203,7 @@ def toggle_star(request, project_id):
 
 # Admin panel (owner/superuser only)
 
-@owner_required
+@editor_or_owner_required
 def admin_dashboard(request):
     """dashboard owner kelola Experience & Project + search"""
     q = request.GET.get("q", "").strip()
@@ -184,6 +212,7 @@ def admin_dashboard(request):
         "experience_list": filter_by_title(Experience.objects.order_by("-started_at"), q),
         "project_list": filter_by_title(Project.objects.order_by("title"), q),
         "q": q,
+        "is_editor": _is_editor(request),
     }
     return render(request, "admin/dashboard.html", context)
 
@@ -227,7 +256,7 @@ def create_project(request):
     return _admin_form(request, form, "Add Project")
 
 
-@owner_required
+@editor_or_owner_required
 def update_project(request, slug):
     """ubah Project lewat form"""
     project = get_object_or_404(Project, slug=slug)
