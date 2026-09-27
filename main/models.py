@@ -54,7 +54,6 @@ class Project(models.Model):
     tech_stack= models.JSONField(default=list)
     project_url = models.URLField(blank=True)
     project_image_url = models.URLField(blank=True, max_length=500)
-    # satu proyek bisa di-star banyak user, satu user bisa star banyak proyek
     starred_by = models.ManyToManyField(
         User, related_name="starred_projects", blank=True
     )

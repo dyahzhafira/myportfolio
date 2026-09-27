@@ -17,11 +17,7 @@ OWNER_NAME = "Dyah Zhafira"
 
 
 def role_required(check):
-    """
-    Factory decorator: belum login -> redirect ke login, login tapi `check(user)`
-    False -> 403. Dipakai buat bikin `owner_required` dan `editor_or_owner_required`
-    tanpa duplikasi wrapper login_required + PermissionDenied di tiap decorator.
-    """
+    """Factory decorator"""
 
     def decorator(view_func):
         @wraps(view_func)

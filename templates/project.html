@@ -16,8 +16,19 @@
                            placeholder="Cari berdasarkan nama proyek"
                            class="project-search__input"
                            aria-label="Cari berdasarkan nama proyek">
+                    {% if sort_by == "star" %}
+                        <input type="hidden" name="sort" value="star">
+                    {% endif %}
                     <button type="submit" class="button">Cari</button>
                 </form>
+
+                <div class="project-sort">
+                    {% if sort_by == "star" %}
+                        <a href="?title={{ title_query }}" class="button button-secondary">Urutkan: Terbaru</a>
+                    {% else %}
+                        <a href="?title={{ title_query }}&sort=star" class="button button-secondary">Urutkan: Terpopuler &#9733;</a>
+                    {% endif %}
+                </div>
 
                 <div class="projects-grid">
                     {% for project in project_list %}

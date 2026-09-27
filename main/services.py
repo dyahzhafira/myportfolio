@@ -1,5 +1,3 @@
-"""Data logic"""
-
 from django.core import serializers
 from django.http import HttpResponse
 from django.utils.text import slugify
@@ -13,10 +11,19 @@ def filter_by_title(queryset, query):
     return queryset.filter(title__icontains=query) if query else queryset
 
 
-def json_response(queryset):
-    """serialize queryset model to HttpResponse format JSON"""
+def json_response(queryset, exclude=None):
+    """serialize queryset model to HttpResponse format JSON, exclude field tertentu kalau ada"""
+    fields = None
+    if exclude:
+        fields = [
+            field.name
+            for field in queryset.model._meta.get_fields()
+            if field.concrete and field.name not in exclude
+        ]
     return HttpResponse(
-        serializers.serialize("json", queryset, use_natural_foreign_keys=True),
+        serializers.serialize(
+            "json", queryset, use_natural_foreign_keys=True, fields=fields
+        ),
         content_type="application/json",
     )
 
