@@ -17,12 +17,23 @@ Website portofolio pribadi berbasis Django. Fitur: halaman Profile, Experience, 
 7. Jalankan test: `python manage.py test main`.
 
 Login admin di `/login/`, dashboard di `/admin-panel/`.
+Untuk mencoba website yang sudah di-deploy, dapat menggunakan demo account berikut:
+
+| Role | Username | Password | Yang bisa dicoba |
+|---|---|---|---|
+| Pengguna biasa | `user_demo` | `userbiasa123` | Login, star/unstar Project |
+| Editor | `editor_demo` | `editor123` | Login -> link "Admin Dashboard" muncul di navbar, bisa edit Project (tapi create/delete Project & seluruh Experience tidak bisa) |
+| Owner (superuser) | `demo` | `demo123` | Akses penuh -> create/update/delete Experience & Project |
+
+(Password di atas cuma buat demo publik)
+
 
 ### Progres Mingguan
 
 - Tugas 1: halaman statis HTML5 dan CSS3, deploy ke PWS.
 - Tugas 2: model Experience dan Project, migrasi, halaman dinamis, halaman detail berbasis slug, unit test.
 - Tugas 3: template `base.html`, ModelForm, CRUD Experience dan Project khusus staff, JSON API, autentikasi, pencarian.
+- Tugas 4: melanjutkan sistem autentikasi dari tutorial 4 (login, logout, register, cookie `last_login`). Tugas 4 menambah rbac pada bagian Project
 
 ### TUGAS 1
 1. pada Tutorial dan tugas 1, Anda diberi kebebasan untuk menentukan website tampilan dari website portfolio Anda. Saat anda merancang struktur HTML yang digunakan, apakah Anda menggunakan elemen semantik HTML5, seperti `<section>`. `<article>`, atau `<aside>`? Jika iya, bagaimana elemen tersebut membantu Anda dalam membuat static web? Jika tidak, mengapa tanpa elemen tersebut sudah memenuhi kebutuhan Anda?
@@ -180,6 +191,28 @@ Dokumentasi akun admin secara lokal, jalankan:
 python manage.py migrate
 python manage.py createsuperuser
 
-Untuk mencoba website yang sudah di-deploy, dapat menggunakan demo account berikut:
-Username: demo
-Password: demo123
+### TUGAS 4
+Tugas sekarang melanjutkan sistem autentikasi dari Tutorial 4 (login, logout, register, cookie `last_login`). Tugas 4 menambah role based auth control pada bagian Project, dengan 4 level akses:
+
+- **Pengunjung (belum login):** hanya bisa membaca halaman Project & Experience. Setiap aksi yang butuh akun (star, create/update/delete) akan diarahkan ke halaman login.
+- **Pengguna biasa:** hak user + bisa memberi/batal star pada Project (`toggle_star`, dibatasi max 1 star per user lewat `ManyToManyField.add()`/`.remove()`).
+- **Editor:**  hak user + bisa update data Project, tapi ga bisa create atau delete. Role ini ditetapkan lewat Django Group bernama `Editor` di `/admin`, dan dicek di server lewat `request.user.groups.filter(name="Editor").exists()`.
+- **Owner (superuser):** akses penuh, create/update/delete Experience & Project.
+
+Pembatasan diterapkan sebagai berikut:
+1. **Server-side**, lewat decorator `role_required` (factory function `owner_required` dan `editor_or_owner_required`), yang redirect ke login kalau belum login, dan raise `PermissionDenied` (403) kalau login tapi rolenya ga sesuai.
+2. **Template**, tombol create/update/delete disembunyikan sesuai kondisi `user.is_superuser` / `is_editor` supaya user yang tidak memiliki akses itu tidak melihat aksi yang akan ditolak server.
+
+Endpoint JSON (`/api/projects/`) juga disesuaikan agar tidak menyertakan daftar `starred_by` (ID user yang nge star), untuk menghindari kebocoran data user lewat endpoint publik.
+
+#### AI Disclosure (Tugas 4)
+Tools: ChatGPT
+Link: https://chatgpt.com/share/6ab92f24-8c4c-83ec-805e-ad779b704e12
+
+Bagian yang dibantu:
+- Diskusi desain decorator role-check: awalnya saya menulis `owner_required` dan `editor_or_owner_required` sebagai 2 fungsi terpisah yang isinya mirip, lalu saya minta pendapat AI soal cara merapikannya.
+- Breakdown checklist tugas jadi langkah-langkah kecil dan urutannya.
+- Review keamanan endpoint JSON. Awalnya saya tidak sadar `serializers.serialize()` itu otomatis menyertakan field `starred_by` (list ID user) ke response publik `/api/projects/`. Setelah didiskusikan, saya benerin sendiri dengan menambah parameter `exclude` pada `json_response()`.
+
+#### FITUR TAMBAHAN
+**Sort by star count**: halaman `/project/` punya toggle "Urutkan: Terpopuler" dari banyaknya star
