@@ -28,7 +28,7 @@
 
                 {% if user.is_authenticated %}
                     <span class="nav-user">{{ user.username }}</span>
-                    {% if user.is_superuser %}
+                    {% if user.is_superuser or is_editor %}
                         <a href="{% url 'main:admin_dashboard' %}">
                             Admin Dashboard
                         </a>

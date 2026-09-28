@@ -29,7 +29,9 @@
                 <div class="admin-block">
                     <div class="project-header">
                         <h2>Experiences</h2>
-                        <a href="{% url 'main:create_experience' %}" class="button">+ Tambah Experience</a>
+                        {% if user.is_superuser %}
+                            <a href="{% url 'main:create_experience' %}" class="button">+ Tambah Experience</a>
+                        {% endif %}
                     </div>
 
                     <div class="projects-grid">
@@ -53,9 +55,11 @@
                                     {% if experience.is_ongoing %}Sedang berlangsung{% else %}Selesai{% endif %}
                                 </p>
                                 <div class="card-actions">
-                                    <a href="{% url 'main:update_experience' experience.id %}" class="button">Edit</a>
-                                    {% url 'main:delete_experience' experience.id as delete_url %}
-                                    {% include "admin/delete_modal.html" with modal_id=experience.id item_title=experience.title item_kind="Experience" action=delete_url %}
+                                    {% if user.is_superuser %}
+                                        <a href="{% url 'main:update_experience' experience.id %}" class="button">Edit</a>
+                                        {% url 'main:delete_experience' experience.id as delete_url %}
+                                        {% include "admin/delete_modal.html" with modal_id=experience.id item_title=experience.title item_kind="Experience" action=delete_url %}
+                                    {% endif %}
                                 </div>
                             </article>
                         {% empty %}
@@ -67,7 +71,9 @@
                 <div class="admin-block">
                     <div class="project-header">
                         <h2>Projects</h2>
-                        <a href="{% url 'main:create_project' %}" class="button">+ Tambah Project</a>
+                        {% if user.is_superuser %}
+                            <a href="{% url 'main:create_project' %}" class="button">+ Tambah Project</a>
+                        {% endif %}
                     </div>
 
                     <div class="projects-grid">
@@ -88,9 +94,13 @@
                                 <h3>{{ project.title }}</h3>
                                 <p class="project-description">{{ project.description }}</p>
                                 <div class="card-actions">
-                                    <a href="{% url 'main:update_project' project.slug %}" class="button">Edit</a>
-                                    {% url 'main:delete_project' project.slug as delete_url %}
-                                    {% include "admin/delete_modal.html" with modal_id=project.id item_title=project.title item_kind="Project" action=delete_url %}
+                                    {% if user.is_superuser or is_editor %}
+                                        <a href="{% url 'main:update_project' project.slug %}" class="button">Edit</a>
+                                    {% endif %}
+                                    {% if user.is_superuser %}
+                                        {% url 'main:delete_project' project.slug as delete_url %}
+                                        {% include "admin/delete_modal.html" with modal_id=project.id item_title=project.title item_kind="Project" action=delete_url %}
+                                    {% endif %}
                                 </div>
                             </article>
                         {% empty %}
