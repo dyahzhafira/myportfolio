@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block meta %}
     <title>{{ name }}</title>
 {% endblock meta %}
@@ -7,18 +8,24 @@
             <div class="container">
                 <div class="project-header">
                     <h1>Projects</h1>
+                    {% if user.is_superuser %}
+                        <button type="button"
+                                class="button project-add-button"
+                                popovertarget="add-project-modal">
+                            <span aria-hidden="true">+</span>
+                            Tambah Proyek
+                        </button>
+                    {% endif %}
                 </div>
 
-                <form method="get" action="{% url 'main:show_project' %}" class="project-search">
+                <form id="project-search-form" class="project-search">
                     <input type="search"
+                           id="search-input"
                            name="title"
                            value="{{ title_query }}"
                            placeholder="Cari berdasarkan nama proyek"
                            class="project-search__input"
                            aria-label="Cari berdasarkan nama proyek">
-                    {% if sort_by == "star" %}
-                        <input type="hidden" name="sort" value="star">
-                    {% endif %}
                     <button type="submit" class="button">Cari</button>
                 </form>
 
@@ -30,34 +37,40 @@
                     {% endif %}
                 </div>
 
-                <div class="projects-grid">
-                    {% for project in project_list %}
-                        <article class="project-card">
-                            {% if project.project_image_url %}
-                                <img src="{{ project.project_image_url }}"
-                                     alt="Gambar {{ project.title }}"
-                                     class="project-image">
-                            {% endif %}
-                            <span class="project-tag">
-                                {{ project.get_project_type_display }} · {{ project.get_status_display }}
-                            </span>
-                            <h2><a href="{% url 'main:show_project_detail' project.slug %}">{{ project.title }}</a></h2>
-                            <p class="project-description">{{ project.description }}</p>
-                            <div class="tech-stack">
-                                {% for tech in project.tech_stack %}
-                                    <span class="tech-badge"><img src="https://cdn.simpleicons.org/{{ tech.icon }}" alt="" loading="lazy">{{ tech.name }}</span>
-                                {% endfor %}
-                            </div>
-                            {% include "components/project_star.html" with project=project %}
-                        </article>
-                    {% empty %}
-                        {% if title_query %}
-                            <p class="empty-state">Tidak ada proyek dengan nama tersebut.</p>
-                        {% else %}
-                            <p class="empty-state">Belum ada proyek yang ditambahkan.</p>
-                        {% endif %}
-                    {% endfor %}
+                <!-- Loading State -->
+                <div id="loading" class="empty-state hide">
+                    <p>Memuat projects...</p>
                 </div>
+
+                <!-- Error State -->
+                <div id="error" class="empty-state hide">
+                    <p>Gagal memuat data projects. Silakan coba lagi.</p>
+                </div>
+
+                <!-- Empty State -->
+                <div id="empty" class="empty-state hide">
+                    <p>Belum ada proyek yang ditambahkan atau ditemukan.</p>
+                </div>
+
+                <!-- Project Grid -->
+                <div id="grid" class="projects-grid hide"></div>
             </div>
         </section>
+
+        {% if user.is_superuser %}
+            {% include "components/project_form_modal.html" %}
+        {% endif %}
+
+        <script>
+            const BASE_PROJECTS_ENDPOINT = "{% url 'main:get_projects_data' %}";
+            const CREATE_PROJECT_ENDPOINT = "{% url 'main:create_project_ajax' %}";
+            const STAR_URL_TEMPLATE = "{% url 'main:toggle_star_ajax' '00000000-0000-0000-0000-000000000000' %}";
+            const DETAIL_URL_TEMPLATE = "{% url 'main:show_project_detail' 'placeholder-slug' %}";
+            const EDIT_URL_TEMPLATE = "{% url 'main:update_project' 'placeholder-slug' %}";
+            const DELETE_URL_TEMPLATE = "{% url 'main:delete_project' 'placeholder-slug' %}";
+            const IS_OWNER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
+            const IS_EDITOR = "{{ is_editor|yesno:'true,false' }}" === "true" || IS_OWNER;
+            const INITIAL_SORT = "{{ sort_by }}";
+        </script>
+        <script src="{% static 'js/project.js' %}"></script>
 {% endblock content %}

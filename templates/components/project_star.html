@@ -1,10 +1,15 @@
-<form method="post" action="{% url 'main:toggle_star' project.id %}" class="star-form">
+<form method="post"
+      action="{% url 'main:toggle_star' project.id %}"
+      class="star-form"
+      data-star-form
+      data-ajax-action="{% url 'main:toggle_star_ajax' project.id %}">
     {% csrf_token %}
     <button type="submit"
             class="button button-star{% if user in project.starred_by.all %} is-starred{% endif %}"
+            data-star-button
             title="{% if project.starred_by.all %}Dibintangi oleh {{ project.starred_by.all|join:', ' }}{% else %}Jadilah yang pertama memberi star{% endif %}">
         <span aria-hidden="true">&#9733;</span>
-        {% if user in project.starred_by.all %}Unstar{% else %}Star{% endif %}
-        <span class="star-count">{{ project.starred_by.count }}</span>
+        <span data-star-text>{% if user in project.starred_by.all %}Unstar{% else %}Star{% endif %}</span>
+        <span class="star-count" data-star-count>{{ project.starred_by.count }}</span>
     </button>
 </form>

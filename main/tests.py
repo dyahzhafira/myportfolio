@@ -83,23 +83,30 @@ class MainTest(TestCase):
         response = self.client.get(reverse("main:show_project"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "project.html")
-        self.assertContains(response, self.project.title)
-        self.assertContains(response, self.project.description)
-        self.assertContains(response, "In Progress")
-        self.assertContains(response, "Individual")
-
+        # data project dimuat lewat AJAX, bukan di HTML awal, jadi cek kerangkanya aja
+        self.assertContains(response, 'id="grid"')
+        self.assertContains(response, 'id="search-input"')
 
     def test_project_data_is_displayed(self):
-        response = self.client.get(reverse("main:show_project"))
-        self.assertContains(response, "SignD")
-        self.assertContains(response, "Go/Fiber")
-
+        # halaman /project/ memuat data lewat AJAX ke get_projects_data
+        response = self.client.get(reverse("main:get_projects_data"))
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(len(data), 1)
+        fields = data[0]["fields"]
+        self.assertEqual(fields["title"], "SignD")
+        self.assertEqual(fields["status_display"], "In Progress")
+        self.assertEqual(fields["project_type_display"], "Individual")
+        self.assertEqual(fields["tech_stack"][0]["name"], "Go/Fiber")
 
     def test_empty_project_page(self):
         Project.objects.all().delete()
         response = self.client.get(reverse("main:show_project"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Belum ada proyek yang ditambahkan.")
+        self.assertContains(response, "Belum ada proyek yang ditambahkan atau ditemukan.")
+
+        data_response = self.client.get(reverse("main:get_projects_data"))
+        self.assertEqual(data_response.json(), [])
 
     def test_project_detail_page(self):
         response = self.client.get(reverse("main:show_project_detail", args=[self.project.slug]))

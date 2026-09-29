@@ -6,7 +6,9 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core.exceptions import PermissionDenied
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
 
 from main.forms import ExperienceForm, ProjectForm
@@ -113,22 +115,48 @@ def get_projects_json(request):
     )
 
 
-def show_project(request):
-    """show Project dari JSON yang di deserialize + search, bisa diurutkan by star"""
-    project_list = objects_from_json(get_projects_json(request))
-    sort_by = request.GET.get("sort", "")
+def get_projects_data(request):
+    """return data Project dalam JSON buat AJAX render"""
+    projects = filter_by_title(Project.objects.prefetch_related("starred_by"), _title_query(request))
 
-    if sort_by == "star":
-        project_list = sorted(
-            project_list, key=lambda project: project.starred_by.count(), reverse=True
+    data = []
+    for project in projects:
+        starred_users = project.starred_by.all()
+        is_starred = request.user in starred_users if request.user.is_authenticated else False
+        data.append(
+            {
+                "id": str(project.id),
+                "slug": project.slug,
+                "fields": {
+                    "title": project.title,
+                    "description": project.description,
+                    "status_display": project.get_status_display(),
+                    "project_type_display": project.get_project_type_display(),
+                    "tech_stack": project.tech_stack,
+                    "project_url": project.project_url,
+                    "project_image_url": project.project_image_url,
+                    "star_count": starred_users.count(),
+                    "is_starred": is_starred,
+                    "starred_by_names": ", ".join(u.username for u in starred_users),
+                },
+            }
         )
 
+    if request.GET.get("sort", "") == "star":
+        data.sort(key=lambda item: item["fields"]["star_count"], reverse=True)
+
+    return JsonResponse(data, safe=False)
+
+
+@ensure_csrf_cookie
+def show_project(request):
+    """render kerangka halaman Project, data proyek diambil lewat AJAX oleh client"""
     context = {
         "name": OWNER_NAME,
-        "project_list": project_list,
         "title_query": _title_query(request),
-        "sort_by": sort_by,
+        "sort_by": request.GET.get("sort", ""),
         "is_editor": _is_editor(request),
+        "form": ProjectForm(),
     }
     return render(request, "project.html", context)
 
@@ -197,6 +225,34 @@ def toggle_star(request, project_id):
     return redirect("main:show_project")
 
 
+@require_POST
+def toggle_star_ajax(request, project_id):
+    """kasih/batalin star pada Project lewat AJAX"""
+    if not request.user.is_authenticated:
+        return JsonResponse(
+            {"message": "Silakan login terlebih dahulu untuk memberi star."}, status=403
+        )
+
+    project = get_object_or_404(Project, pk=project_id)
+
+    if request.user in project.starred_by.all():
+        project.starred_by.remove(request.user)
+        is_starred = False
+        message = "Star dibatalkan."
+    else:
+        project.starred_by.add(request.user)
+        is_starred = True
+        message = "Project berhasil diberi star."
+
+    return JsonResponse(
+        {
+            "message": message,
+            "is_starred": is_starred,
+            "star_count": project.starred_by.count(),
+        }
+    )
+
+
 # Admin panel (owner/superuser only)
 
 @editor_or_owner_required
@@ -250,6 +306,29 @@ def create_project(request):
         return redirect("main:admin_dashboard")
 
     return _admin_form(request, form, "Add Project")
+
+
+@require_POST
+def create_project_ajax(request):
+    """tambah Project lewat AJAX dari modal di halaman /project/"""
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"message": "Hanya owner yang dapat menambahkan proyek."},
+            status=403,
+        )
+
+    form = ProjectForm(request.POST)
+    if form.is_valid():
+        project = form.save(commit=False)
+        project.slug = unique_slug(project.title)
+        project.tech_stack = []
+        project.save()
+        return JsonResponse(
+            {"message": "Project berhasil ditambahkan.", "slug": project.slug},
+            status=201,
+        )
+
+    return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
 
 
 @editor_or_owner_required
