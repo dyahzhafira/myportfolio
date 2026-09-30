@@ -13,7 +13,7 @@ from django.views.decorators.http import require_POST
 
 from main.forms import ExperienceForm, ProjectForm
 from main.models import Experience, Project
-from main.services import filter_by_title, json_response, objects_from_json, unique_slug
+from main.services import filter_by_title, json_response, unique_slug
 
 OWNER_NAME = "Dyah Zhafira"
 
@@ -97,12 +97,43 @@ def get_experiences_json(request):
     return json_response(filter_by_title(queryset, _title_query(request)))
 
 
+def get_experiences_data(request):
+    """return data Experience dalam JSON buat AJAX render"""
+    experiences = filter_by_title(
+        Experience.objects.prefetch_related("starred_by").order_by("-started_at"),
+        _title_query(request),
+    )
+
+    data = []
+    for experience in experiences:
+        starred_users = experience.starred_by.all()
+        is_starred = request.user in starred_users if request.user.is_authenticated else False
+        data.append(
+            {
+                "id": str(experience.id),
+                "fields": {
+                    "title": experience.title,
+                    "description": experience.description,
+                    "category_display": experience.get_category_display(),
+                    "is_ongoing": experience.is_ongoing,
+                    "thumbnail": experience.thumbnail,
+                    "star_count": starred_users.count(),
+                    "is_starred": is_starred,
+                    "starred_by_names": ", ".join(u.username for u in starred_users),
+                },
+            }
+        )
+
+    return JsonResponse(data, safe=False)
+
+
+@ensure_csrf_cookie
 def show_experience(request):
-    """show Experience dari JSON yang di deserialize + search"""
+    """render kerangka halaman Experience"""
     context = {
         "name": OWNER_NAME,
-        "experience_list": objects_from_json(get_experiences_json(request)),
         "title_query": _title_query(request),
+        "form": ExperienceForm(),
     }
     return render(request, "experience.html", context)
 
@@ -253,6 +284,34 @@ def toggle_star_ajax(request, project_id):
     )
 
 
+@require_POST
+def toggle_experience_star_ajax(request, experience_id):
+    """kasih/batalin star pada Experience lewat AJAX"""
+    if not request.user.is_authenticated:
+        return JsonResponse(
+            {"message": "Silakan login terlebih dahulu untuk memberi star."}, status=403
+        )
+
+    experience = get_object_or_404(Experience, pk=experience_id)
+
+    if request.user in experience.starred_by.all():
+        experience.starred_by.remove(request.user)
+        is_starred = False
+        message = "Star dibatalkan."
+    else:
+        experience.starred_by.add(request.user)
+        is_starred = True
+        message = "Experience berhasil diberi star."
+
+    return JsonResponse(
+        {
+            "message": message,
+            "is_starred": is_starred,
+            "star_count": experience.starred_by.count(),
+        }
+    )
+
+
 # Admin panel (owner/superuser only)
 
 @editor_or_owner_required
@@ -274,6 +333,26 @@ def create_experience(request):
     """tambah Experience lewat form"""
     form = ExperienceForm(request.POST or None)
     return _handle_form(request, form, "Add Experience", "Experience berhasil ditambahkan!")
+
+
+@require_POST
+def create_experience_ajax(request):
+    """tambah Experience lewat AJAX dari modal di halaman /experience/"""
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"message": "Hanya owner yang dapat menambahkan experience."},
+            status=403,
+        )
+
+    form = ExperienceForm(request.POST)
+    if form.is_valid():
+        experience = form.save()
+        return JsonResponse(
+            {"message": "Experience berhasil ditambahkan.", "id": str(experience.id)},
+            status=201,
+        )
+
+    return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
 
 
 @owner_required

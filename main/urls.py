@@ -8,8 +8,10 @@ from main.views import (
     get_projects_json,
     get_projects_data,
     get_experiences_json,
+    get_experiences_data,
     admin_dashboard,
     create_experience,
+    create_experience_ajax,
     update_experience,
     delete_experience,
     create_project,
@@ -21,6 +23,7 @@ from main.views import (
     logout_user,
     toggle_star,
     toggle_star_ajax,
+    toggle_experience_star_ajax,
 )
 
 app_name = "main"
@@ -33,6 +36,7 @@ urlpatterns = [
     path("api/projects/", get_projects_json, name="get_projects_json"),
     path("api/projects/data/", get_projects_data, name="get_projects_data"),
     path("api/experiences/", get_experiences_json, name="get_experiences_json"),
+    path("api/experiences/data/", get_experiences_data, name="get_experiences_data"),
     path("register/", register, name="register"),
     path("login/", login_user, name="login"),
     path("logout/", logout_user, name="logout"),
@@ -47,6 +51,12 @@ urlpatterns = [
         name="toggle_star_ajax",
     ),
     path("project/add-ajax/", create_project_ajax, name="create_project_ajax"),
+    path(
+        "experience/<uuid:experience_id>/star-ajax/",
+        toggle_experience_star_ajax,
+        name="toggle_experience_star_ajax",
+    ),
+    path("experience/add-ajax/", create_experience_ajax, name="create_experience_ajax"),
     path("admin-panel/", admin_dashboard, name="admin_dashboard"),
     path("admin-panel/experiences/add/", create_experience, name="create_experience"),
     path(
