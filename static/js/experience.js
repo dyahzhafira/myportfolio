@@ -7,6 +7,8 @@
     const searchInput = document.getElementById('experience-search-input');
     const experienceForm = document.getElementById('experience-form');
 
+    // Lihat catatan yang sama di project.js: elemen ini bisa null kalau script
+    // ini kebawa load di halaman lain, jadi hentikan eksekusi di sini.
     if (!gridContainer) return;
 
     const SEARCH_DEBOUNCE_DELAY = 300;
@@ -57,6 +59,8 @@
     }
 
     async function fetchExperiences(searchQuery = '') {
+        // Batalkan fetch sebelumnya yang belum selesai, supaya response yang lambat
+        // dari pencarian lama tidak menimpa hasil pencarian yang lebih baru.
         if (experiencesAbortController) experiencesAbortController.abort();
         experiencesAbortController = new AbortController();
 
@@ -105,6 +109,9 @@
                 headers: { 'X-CSRFToken': getCookie('csrftoken') },
             });
 
+            // Cek status 403 duluan sebelum parse JSON. Pengunjung anonim yang belum
+            // pernah dapat cookie CSRF bisa menerima halaman error bawaan Django
+            // (bukan JSON) untuk kasus ini.
             if (response.status === 403) {
                 if (typeof showToast === 'function') {
                     showToast('Gagal', 'Silakan login terlebih dahulu untuk memberi star.', 'error');
@@ -127,11 +134,12 @@
         }
     });
 
-    // search debouncing
     function searchExperiences() {
         fetchExperiences(searchInput.value.trim());
     }
 
+    // Debounce: timer dibatalkan dan dimulai ulang tiap ketikan, request baru
+    // cuma dikirim setelah user berhenti mengetik selama SEARCH_DEBOUNCE_DELAY ms.
     searchInput.addEventListener('input', function () {
         clearTimeout(searchDebounceTimer);
         searchDebounceTimer = setTimeout(searchExperiences, SEARCH_DEBOUNCE_DELAY);

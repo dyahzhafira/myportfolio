@@ -8,7 +8,9 @@
     const searchInput = document.getElementById('search-input');
     const projectForm = document.getElementById('project-form');
 
-    if (!gridContainer) return; 
+    // Elemen bisa null kalau script ini kebawa load di halaman lain, jadi hentikan
+    // eksekusi di sini supaya querySelector di bawah tidak melempar error di tengah jalan.
+    if (!gridContainer) return;
 
     const SEARCH_DEBOUNCE_DELAY = 300;
     let searchDebounceTimer;
@@ -46,6 +48,10 @@
             ? `<a href="${editUrl}" class="button">Edit</a>`
             : '';
 
+        // Form hapus ini dikirim lewat navigasi biasa (bukan fetch), jadi Django tetap
+        // butuh field csrfmiddlewaretoken di body-nya. {% csrf_token %} tidak bisa
+        // dipakai di sini karena markup ini dirakit di berkas .js statis yang tidak
+        // diproses Django, jadi nilai cookie csrftoken-nya dipakai langsung sebagai token.
         const deleteHtml = IS_OWNER
             ? `<form method="post" action="${deleteUrl}" style="display:inline;">
                     <input type="hidden" name="csrfmiddlewaretoken" value="${getCookie('csrftoken')}">
@@ -84,6 +90,9 @@
     }
 
     async function fetchProjects(searchQuery = '') {
+        // Kalau user mengetik cepat, fetch sebelumnya mungkin belum selesai saat fetch
+        // baru dikirim. AbortController membatalkan request lama itu supaya hasil yang
+        // lebih dulu kembali dari server tidak menimpa hasil pencarian yang lebih baru.
         if (projectsAbortController) projectsAbortController.abort();
         projectsAbortController = new AbortController();
 
@@ -133,6 +142,10 @@
                 headers: { 'X-CSRFToken': getCookie('csrftoken') },
             });
 
+            // Cek status duluan sebelum parse body. Pengunjung yang belum pernah
+            // dapat cookie CSRF (anonim, tanpa form apa pun yang ter-render) bisa
+            // menerima halaman error CSRF bawaan Django, bukan JSON, jadi kita cuma
+            // perlu tahu statusnya 403 dan tidak perlu baca isi body itu sama sekali.
             if (response.status === 403) {
                 if (typeof showToast === 'function') {
                     showToast('Gagal', 'Silakan login terlebih dahulu untuk memberi star.', 'error');
@@ -155,11 +168,13 @@
         }
     });
 
-    // Search debouncing
     function searchProjects() {
         fetchProjects(searchInput.value.trim());
     }
 
+    // Debounce: tiap ketikan membatalkan timer sebelumnya dan menjadwal ulang. Request
+    // baru dikirim ke server setelah user berhenti mengetik selama SEARCH_DEBOUNCE_DELAY,
+    // jadi tidak ada satu request terpisah untuk tiap huruf yang diketik.
     searchInput.addEventListener('input', function () {
         clearTimeout(searchDebounceTimer);
         searchDebounceTimer = setTimeout(searchProjects, SEARCH_DEBOUNCE_DELAY);

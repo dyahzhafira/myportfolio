@@ -258,7 +258,14 @@ def toggle_star(request, project_id):
 
 @require_POST
 def toggle_star_ajax(request, project_id):
-    """kasih/batalin star pada Project lewat AJAX"""
+    """kasih/batalin star pada Project lewat AJAX.
+
+    Sengaja tidak pakai @login_required di sini karena dekorator itu akan
+    redirect ke halaman login (status 200, bukan 403) kalau belum login, dan
+    fetch() di frontend akan mengikuti redirect itu lalu menerima HTML
+    halaman login tanpa tahu permintaannya sebenarnya ditolak. Cek manual
+    di bawah memastikan AJAX selalu dapat JSON 403 yang jelas.
+    """
     if not request.user.is_authenticated:
         return JsonResponse(
             {"message": "Silakan login terlebih dahulu untuk memberi star."}, status=403
@@ -286,7 +293,12 @@ def toggle_star_ajax(request, project_id):
 
 @require_POST
 def toggle_experience_star_ajax(request, experience_id):
-    """kasih/batalin star pada Experience lewat AJAX"""
+    """kasih/batalin star pada Experience lewat AJAX.
+
+    Sama kayak toggle_star_ajax: pakai cek manual, bukan @login_required,
+    biar pengunjung yang belum login dapat JSON 403 yang jelas lewat fetch(),
+    bukan ikut redirect ke halaman login.
+    """
     if not request.user.is_authenticated:
         return JsonResponse(
             {"message": "Silakan login terlebih dahulu untuk memberi star."}, status=403
@@ -337,7 +349,12 @@ def create_experience(request):
 
 @require_POST
 def create_experience_ajax(request):
-    """tambah Experience lewat AJAX dari modal di halaman /experience/"""
+    """tambah Experience lewat AJAX dari modal di halaman /experience/.
+
+    Sama kayak create_project_ajax: permission dicek manual di dalam view,
+    bukan cuma disembunyikan di template, dan validasi tetap lewat
+    ExperienceForm yang sama dengan form create biasa.
+    """
     if not request.user.is_superuser:
         return JsonResponse(
             {"message": "Hanya owner yang dapat menambahkan experience."},
@@ -389,7 +406,14 @@ def create_project(request):
 
 @require_POST
 def create_project_ajax(request):
-    """tambah Project lewat AJAX dari modal di halaman /project/"""
+    """tambah Project lewat AJAX dari modal di halaman /project/.
+
+    Permission dicek manual di sini (bukan cuma disembunyikan di template),
+    karena menyembunyikan tombol modal tidak mencegah siapa pun memanggil
+    endpoint ini langsung lewat fetch() atau curl. Validasi tetap lewat
+    ProjectForm yang sama dengan form create biasa, termasuk clean_title
+    dan clean_description yang membersihkan tag HTML.
+    """
     if not request.user.is_superuser:
         return JsonResponse(
             {"message": "Hanya owner yang dapat menambahkan proyek."},
