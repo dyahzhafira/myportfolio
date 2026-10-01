@@ -34,6 +34,7 @@ Untuk mencoba website yang sudah di-deploy, dapat menggunakan demo account berik
 - Tugas 2: model Experience dan Project, migrasi, halaman dinamis, halaman detail berbasis slug, unit test.
 - Tugas 3: template `base.html`, ModelForm, CRUD Experience dan Project khusus staff, JSON API, autentikasi, pencarian.
 - Tugas 4: melanjutkan sistem autentikasi dari tutorial 4 (login, logout, register, cookie `last_login`). Tugas 4 menambah rbac pada bagian Project
+- Tugas 5: AJAX & Fetch API di halaman Project dan Experience (load data, search debounce, modal tambah data, toast notification), fitur star untuk Experience, skeleton loading, proteksi XSS (escaping di JS + strip_tags di server).
 
 ### TUGAS 1
 1. pada Tutorial dan tugas 1, Anda diberi kebebasan untuk menentukan website tampilan dari website portfolio Anda. Saat anda merancang struktur HTML yang digunakan, apakah Anda menggunakan elemen semantik HTML5, seperti `<section>`. `<article>`, atau `<aside>`? Jika iya, bagaimana elemen tersebut membantu Anda dalam membuat static web? Jika tidak, mengapa tanpa elemen tersebut sudah memenuhi kebutuhan Anda?
@@ -216,3 +217,38 @@ Bagian yang dibantu:
 
 #### FITUR TAMBAHAN
 **Sort by star count**: halaman `/project/` punya toggle "Urutkan: Terpopuler" dari banyaknya star
+
+### Tugas 5
+
+1. Jelaskan apa itu debouncing dan mengapa teknik ini penting diterapkan pada fitur pencarian yang menggunakan AJAX!
+
+-> Debouncing itu teknik untuk menunda eksekusi suatu function sampai jeda waktu tertentu. Pada searching berbasis AJAX, kalau tanpa debouncing, nantinya tiap karakter yang diketik user akan langsung triggering satu request ke server (misal cari "Django" berarti 6 request terpisah). Ini pastinya akan boros bandwidth dan bakal membebani server. Karena request berjalan asinkron, response yang datang belakangan bisa aja dari request yang lebih lama sehingga hasil pencarian jadi tidak konsisten. Pada implementasi saya di `project.js` dan `experience.js`, saya pakai `setTimeout` dengan delay 300ms yang di reset tiap event `input` dengan `AbortController` untuk membatalkan request lama yang belum selesai.
+
+2. Jelaskan fungsi dari penggunaan `await` ketika kita menggunakan `fetch()`! Apa yang akan terjadi jika kita tidak menggunakan `await`?
+
+-> `fetch()` selalu return `Promise`, bukan hasil langsung, karena request ke server berjalan asinkron. `await` akan membuat eksekusi kode berhenti sementara di baris itu sampai `Promise` tersebut selesai (resolve), baru lanjut ke baris berikutnya dengan nilai hasil yang sudah didapat. Kalau tidak pakai `await`, baris kode setelah `fetch()` akan langsung execute duluan sebelum ada response dari server, sehingga variabel yang harusnya berisi data dari server malah masih berupa objek `Promise` yang belum selesai, dan kode yang coba akses isinya (misal `response.json()`) akan error atau mendapat data yang salah.
+
+3. Jelaskan apa itu serangan XSS (Cross-Site Scripting) dan mengapa data yang ditampilkan melalui AJAX/JavaScript lebih rentan terhadap serangan ini daripada data yang ditampilkan langsung melalui template Django!
+
+-> XSS serangan dengan menyisipkan kode JavaScript ke data yang nantinya ditampilkan ke user lain, misalnya melalui judul project atau deskripsi experience.
+
+Pada template Django, `{{ variabel }}` sudah otomatis menggunakan auto escaping. Jadi karakter seperti `<` dan `>` akan diubah menjadi `&lt;` dan `&gt;`, sehingga kode tersebut ditampilkan sebagai teks biasa dan tidak dijalankan oleh browser.
+
+Namun, ketika data diambil melalui AJAX menggunakan `fetch()` dan saya membuat HTML sendiri menggunakan template literal dan `innerHTML`, auto escaping dari Django sudah tidak berlaku. Akibatnya, jika data mengandung tag HTML atau JavaScript, browser dapat menganggapnya sebagai kode dan menjalankannya.
+
+Karena itu, saya membuat function `escapeHtml()` di `common.js` untuk mengubah karakter khusus seperti `&`, `<`, `>`, `"`, dan `'` menjadi HTML entity sebelum data dimasukkan ke `innerHTML`. Dengan begitu, kode yang disisipkan pengguna akan dianggap sebagai teks biasa dan tidak dieksekusi oleh browser.
+
+
+#### AI Disclosure (Tugas 5)
+Tools: Claude Code CLI
+
+Sebelumnya mohon maaf, karena saya lupa kalau CLI Claude tidak bisa share link dan saya juga agak kesulitan untuk screenshot/copas tangkapan layarnya, jadi saya coba kirim rangkuman keseluruhan sesi dari claude:
+
+1. Setelah membaca soal Individual Assignment 5, saya meminta untuk diberikan checklist detail yang harus saya lakukan. Lalu, saya dibantu step by step menerapkan pola AJAX (load data, search debouncing, modal tambah data, toast, proteksi XSS) ke halaman Experience.
+
+2. Ditemukan 1 bug saat mengerjakan step by step oleh AI, yaitu tag template Django `{% csrf_token %}` sempat ditulis di berkas JavaScript statis padahal berkas `.js` tidak diproses oleh Django sehingga tag itu tidak terganti oleh token asli. Bug ini kemudian diperbaiki dengan ambil nilai cookie `csrftoken` langsung lewat JavaScript.
+
+3. Saya juga meminta AI membantu step by step menambahkan fitur (skeleton loading, melanjutkan fitur aksesibilitas prefers-reduced-motion yang sudah ada sejak Tugas 1)
+
+#### FITUR TAMBAHAN (Tugas 5)
+- Skeleton loading: kondisi loading pada halaman Project dan Experience menampilkan placeholder card dan otomatis nonaktif untuk pengguna dengan `prefers-reduced-motion` aktif.
