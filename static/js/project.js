@@ -13,8 +13,13 @@
     if (!gridContainer) return;
 
     const SEARCH_DEBOUNCE_DELAY = 300;
+    const ID_PLACEHOLDER = '00000000-0000-0000-0000-000000000000';
     let searchDebounceTimer;
     let projectsAbortController;
+
+    function notify(title, message, type) {
+        if (typeof showToast === 'function') showToast(title, message, type);
+    }
 
     function displayPageSection({ showLoading = false, showError = false, showEmpty = false, showGrid = false }) {
         loadingState.classList.toggle('hide', !showLoading);
@@ -23,11 +28,9 @@
         gridContainer.classList.toggle('hide', !showGrid);
     }
 
-    function buildProjectCardElement(item) {
-        const project = item.fields;
-        const projectId = item.id;
-        const slug = item.slug;
-
+    // Kontrak DRF: objek proyek sudah flat (project.title), bukan item.fields.title
+    // seperti endpoint JsonResponse lama.
+    function buildProjectCardElement(project) {
         const articleElement = document.createElement('article');
         articleElement.className = 'project-card';
 
@@ -39,24 +42,18 @@
             .map((tech) => `<span class="tech-badge"><img src="https://cdn.simpleicons.org/${escapeHtml(tech.icon)}" alt="" loading="lazy">${escapeHtml(tech.name)}</span>`)
             .join('');
 
-        const detailUrl = DETAIL_URL_TEMPLATE.replace('placeholder-slug', slug);
-        const editUrl = EDIT_URL_TEMPLATE.replace('placeholder-slug', slug);
-        const deleteUrl = DELETE_URL_TEMPLATE.replace('placeholder-slug', slug);
-        const starUrl = STAR_URL_TEMPLATE.replace('00000000-0000-0000-0000-000000000000', projectId);
+        const detailUrl = DETAIL_URL_TEMPLATE.replace('placeholder-slug', encodeURIComponent(project.slug));
+        const editUrl = EDIT_URL_TEMPLATE.replace('placeholder-slug', encodeURIComponent(project.slug));
+        const starUrl = STAR_URL_TEMPLATE.replace(ID_PLACEHOLDER, project.id);
 
         const editHtml = IS_EDITOR
             ? `<a href="${editUrl}" class="button">Edit</a>`
             : '';
 
-        // Form hapus ini dikirim lewat navigasi biasa (bukan fetch), jadi Django tetap
-        // butuh field csrfmiddlewaretoken di body-nya. {% csrf_token %} tidak bisa
-        // dipakai di sini karena markup ini dirakit di berkas .js statis yang tidak
-        // diproses Django, jadi nilai cookie csrftoken-nya dipakai langsung sebagai token.
+        // Hapus sekarang lewat DELETE ke API (bukan form POST), jadi cukup tombol
+        // dengan data-id. Izin sebenarnya tetap dicek server, bukan oleh IS_OWNER.
         const deleteHtml = IS_OWNER
-            ? `<form method="post" action="${deleteUrl}" style="display:inline;">
-                    <input type="hidden" name="csrfmiddlewaretoken" value="${getCookie('csrftoken')}">
-                    <button type="submit" class="button button-danger" onclick="return confirm('Yakin ingin menghapus project ini?');">Hapus</button>
-               </form>`
+            ? `<button type="button" class="button button-danger" data-delete-button data-id="${escapeHtml(project.id)}">Hapus</button>`
             : '';
 
         const isStarredClass = project.is_starred ? ' is-starred' : '';
@@ -118,8 +115,8 @@
                 displayPageSection({ showEmpty: true });
             } else {
                 gridContainer.innerHTML = '';
-                projectData.forEach((item) => {
-                    gridContainer.appendChild(buildProjectCardElement(item));
+                projectData.forEach((project) => {
+                    gridContainer.appendChild(buildProjectCardElement(project));
                 });
                 displayPageSection({ showGrid: true });
             }
@@ -130,7 +127,13 @@
         }
     }
 
-    //toggle star lewat AJAX
+    // Error DRF berbentuk {"title": ["..."]} (validasi) atau {"detail": "..."} (izin).
+    function apiErrorMessage(data, status) {
+        const messages = Object.values(data).flat().filter((value) => typeof value === 'string');
+        return messages.join(' ') || `Terjadi kesalahan (status ${status}).`;
+    }
+
+    //toggle star lewat API
     gridContainer.addEventListener('click', async function (event) {
         const button = event.target.closest('[data-star-button]');
         if (!button) return;
@@ -139,17 +142,13 @@
         try {
             const response = await fetch(button.dataset.starUrl, {
                 method: 'POST',
-                headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                headers: { 'Accept': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
             });
 
-            // Cek status duluan sebelum parse body. Pengunjung yang belum pernah
-            // dapat cookie CSRF (anonim, tanpa form apa pun yang ter-render) bisa
-            // menerima halaman error CSRF bawaan Django, bukan JSON, jadi kita cuma
-            // perlu tahu statusnya 403 dan tidak perlu baca isi body itu sama sekali.
+            // Pengunjung yang belum login mendapat 403 dari permission IsAuthenticated.
+            // Cukup cek statusnya, isi body tidak perlu dibaca.
             if (response.status === 403) {
-                if (typeof showToast === 'function') {
-                    showToast('Gagal', 'Silakan login terlebih dahulu untuk memberi star.', 'error');
-                }
+                notify('Gagal', 'Silakan login terlebih dahulu untuk memberi star.', 'error');
                 return;
             }
             if (!response.ok) throw new Error('Failed to toggle star');
@@ -160,10 +159,36 @@
             button.querySelector('[data-star-count]').textContent = result.star_count;
         } catch (error) {
             console.error('Error toggling star:', error);
-            if (typeof showToast === 'function') {
-                showToast('Gagal', 'Tidak dapat memperbarui star. Silakan coba lagi.', 'error');
-            }
+            notify('Gagal', 'Tidak dapat memperbarui star. Silakan coba lagi.', 'error');
         } finally {
+            button.disabled = false;
+        }
+    });
+
+    //hapus proyek lewat DELETE
+    gridContainer.addEventListener('click', async function (event) {
+        const button = event.target.closest('[data-delete-button]');
+        if (!button) return;
+        if (!window.confirm('Yakin ingin menghapus project ini?')) return;
+
+        button.disabled = true;
+        try {
+            const response = await fetch(DETAIL_API_TEMPLATE.replace(ID_PLACEHOLDER, button.dataset.id), {
+                method: 'DELETE',
+                headers: { 'Accept': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            });
+
+            // 204 No Content tidak punya body, jadi .json() tidak boleh dipanggil.
+            if (response.status !== 204) {
+                const result = await response.json().catch(() => ({}));
+                throw new Error(apiErrorMessage(result, response.status));
+            }
+
+            notify('Berhasil', 'Proyek berhasil dihapus.', 'success');
+            fetchProjects(searchInput.value.trim());
+        } catch (error) {
+            console.error('Error deleting project:', error);
+            notify('Gagal menghapus proyek', error.message, 'error');
             button.disabled = false;
         }
     });
@@ -186,7 +211,7 @@
         searchProjects();
     });
 
-    //modal tambah proyek via AJAX
+    //modal tambah proyek via API
     function closeProjectModal() {
         const modal = document.getElementById('add-project-modal');
         if (modal) modal.hidePopover();
@@ -198,10 +223,21 @@
         submitButton.disabled = true;
 
         try {
-            const response = await fetch(CREATE_PROJECT_ENDPOINT, {
+            // Pilih field secara eksplisit supaya token CSRF di form tidak ikut terkirim.
+            const fields = new FormData(projectForm);
+            const payload = Object.fromEntries(
+                ['title', 'description', 'status', 'project_type', 'project_url', 'project_image_url']
+                    .map((name) => [name, fields.get(name)])
+            );
+
+            const response = await fetch(BASE_PROJECTS_ENDPOINT, {
                 method: 'POST',
-                headers: { 'X-CSRFToken': getCookie('csrftoken') },
-                body: new FormData(projectForm),
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+                body: JSON.stringify(payload),
             });
 
             const result = await response.json().catch(() => ({}));
@@ -209,23 +245,14 @@
             if (response.ok) {
                 projectForm.reset();
                 closeProjectModal();
-                if (typeof showToast === 'function') {
-                    showToast('Berhasil', 'Proyek baru berhasil ditambahkan!', 'success');
-                }
+                notify('Berhasil', 'Proyek baru berhasil ditambahkan!', 'success');
                 fetchProjects(searchInput.value.trim());
             } else {
-                const errorMessages = result.errors
-                    ? Object.values(result.errors).flat().map((error) => error.message)
-                    : [result.message || `Terjadi kesalahan (status ${response.status}).`];
-                if (typeof showToast === 'function') {
-                    showToast('Gagal menambahkan proyek', errorMessages.join(' '), 'error');
-                }
+                notify('Gagal menambahkan proyek', apiErrorMessage(result, response.status), 'error');
             }
         } catch (error) {
             console.error('Error adding project:', error);
-            if (typeof showToast === 'function') {
-                showToast('Gagal menambahkan proyek', 'Tidak dapat terhubung ke server. Silakan coba lagi.', 'error');
-            }
+            notify('Gagal menambahkan proyek', 'Tidak dapat terhubung ke server. Silakan coba lagi.', 'error');
         } finally {
             submitButton.disabled = false;
         }

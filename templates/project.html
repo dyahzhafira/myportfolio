@@ -84,13 +84,13 @@
             {% include "components/project_form_modal.html" %}
         {% endif %}
 
+        {% csrf_token %}
         <script>
-            const BASE_PROJECTS_ENDPOINT = "{% url 'main:get_projects_data' %}";
-            const CREATE_PROJECT_ENDPOINT = "{% url 'main:create_project_ajax' %}";
-            const STAR_URL_TEMPLATE = "{% url 'main:toggle_star_ajax' '00000000-0000-0000-0000-000000000000' %}";
+            const BASE_PROJECTS_ENDPOINT = "{% url 'api:project-list' %}";
+            const STAR_URL_TEMPLATE = "{% url 'api:project-star' '00000000-0000-0000-0000-000000000000' %}";
+            const DETAIL_API_TEMPLATE = "{% url 'api:project-detail' '00000000-0000-0000-0000-000000000000' %}";
             const DETAIL_URL_TEMPLATE = "{% url 'main:show_project_detail' 'placeholder-slug' %}";
             const EDIT_URL_TEMPLATE = "{% url 'main:update_project' 'placeholder-slug' %}";
-            const DELETE_URL_TEMPLATE = "{% url 'main:delete_project' 'placeholder-slug' %}";
             const IS_OWNER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
             const IS_EDITOR = "{{ is_editor|yesno:'true,false' }}" === "true" || IS_OWNER;
             const INITIAL_SORT = "{{ sort_by }}";

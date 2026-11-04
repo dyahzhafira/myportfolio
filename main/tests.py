@@ -302,7 +302,9 @@ class AuthTests(TestCase):
         self.client.post(url)
         self.assertEqual(self.project.starred_by.count(), 0)
 
-    def test_api_uses_usernames_not_ids(self):
+    def test_api_does_not_expose_starred_by(self):
         self.project.starred_by.add(self.user)
         response = self.client.get(reverse("main:get_projects_json"))
-        self.assertIn([["biasa"]], [item["fields"]["starred_by"] for item in response.json()])
+        for item in response.json():
+            self.assertNotIn("starred_by", item["fields"])
+        self.assertNotIn("biasa", response.content.decode())
