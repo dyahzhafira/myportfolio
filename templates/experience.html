@@ -10,8 +10,8 @@
                     <h1>Experience</h1>
                     {% if user.is_superuser %}
                         <button type="button"
-                                class="button project-add-button"
-                                popovertarget="add-experience-modal">
+                                id="experience-add-button"
+                                class="button project-add-button">
                             <span aria-hidden="true">+</span>
                             Tambah Experience
                         </button>
@@ -26,6 +26,16 @@
                            placeholder="Cari berdasarkan nama experience"
                            class="project-search__input"
                            aria-label="Cari berdasarkan nama experience">
+                    <select id="experience-category-filter" class="project-search__input" aria-label="Filter kategori">
+                        <option value="">Semua kategori</option>
+                        {% for value, label in form.fields.category.choices %}
+                            <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    <select id="experience-sort" class="project-search__input" aria-label="Urutkan">
+                        <option value="">Terbaru</option>
+                        <option value="star">Terpopuler</option>
+                    </select>
                     <button type="submit" class="button">Cari</button>
                 </form>
 
@@ -69,15 +79,16 @@
             </div>
         </section>
 
-        {% if user.is_superuser %}
+        {% if user.is_superuser or is_editor %}
             {% include "components/experience_form_modal.html" %}
         {% endif %}
 
         <script>
-            const EXPERIENCES_DATA_ENDPOINT = "{% url 'main:get_experiences_data' %}";
-            const CREATE_EXPERIENCE_ENDPOINT = "{% url 'main:create_experience_ajax' %}";
-            const EXPERIENCE_STAR_URL_TEMPLATE = "{% url 'main:toggle_experience_star_ajax' '00000000-0000-0000-0000-000000000000' %}";
+            const EXPERIENCES_ENDPOINT = "{% url 'api:experience-list' %}";
+            const EXPERIENCE_DETAIL_TEMPLATE = "{% url 'api:experience-detail' '00000000-0000-0000-0000-000000000000' %}";
+            const EXPERIENCE_STAR_URL_TEMPLATE = "{% url 'api:experience-star' '00000000-0000-0000-0000-000000000000' %}";
             const IS_OWNER_EXPERIENCE = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
+            const IS_EDITOR_EXPERIENCE = "{{ is_editor|yesno:'true,false' }}" === "true" || IS_OWNER_EXPERIENCE;
         </script>
         <script src="{% static 'js/experience.js' %}"></script>
 {% endblock content %}

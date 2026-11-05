@@ -17,8 +17,6 @@
                 aria-label="Tutup form tambah experience">&times;</button>
         <h2 id="add-experience-modal-title">Tambah Experience Baru</h2>
         <form id="experience-form"
-              method="post"
-              action="{% url 'main:create_experience_ajax' %}"
               class="project-form">
             {% csrf_token %}
             {% for field in form %}
@@ -35,7 +33,7 @@
                         class="button button-secondary"
                         popovertarget="add-experience-modal"
                         popovertargetaction="hide">Batal</button>
-                <button type="submit" class="button">Tambah Experience</button>
+                <button type="submit" id="experience-submit" class="button">Tambah Experience</button>
             </div>
         </form>
     </div>

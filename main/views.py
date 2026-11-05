@@ -133,6 +133,7 @@ def show_experience(request):
     context = {
         "name": OWNER_NAME,
         "title_query": _title_query(request),
+        "is_editor": _is_editor(request),
         "form": ExperienceForm(),
     }
     return render(request, "experience.html", context)
