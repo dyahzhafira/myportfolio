@@ -27,6 +27,57 @@ Untuk mencoba website yang sudah di-deploy, dapat menggunakan demo account berik
 
 (Password di atas cuma buat demo publik)
 
+#### Daftar Endpoint
+
+**API REST (`/api/v1/`, DRF, JSON)**
+
+| Method | Endpoint | Akses |
+|---|---|---|
+| GET | `/api/v1/projects/` (`?title=`, `?sort=star`) | Semua |
+| POST | `/api/v1/projects/` | Owner |
+| GET | `/api/v1/projects/<uuid>/` | Semua |
+| PUT, PATCH | `/api/v1/projects/<uuid>/` | Owner, Editor |
+| DELETE | `/api/v1/projects/<uuid>/` | Owner |
+| POST | `/api/v1/projects/<uuid>/star/` | User login |
+| GET | `/api/v1/experiences/` (`?title=`, `?category=`, `?sort=star`) | Semua |
+| POST | `/api/v1/experiences/` | Owner |
+| GET | `/api/v1/experiences/<uuid>/` | Semua |
+| PUT, PATCH | `/api/v1/experiences/<uuid>/` | Owner, Editor |
+| DELETE | `/api/v1/experiences/<uuid>/` | Owner |
+| POST | `/api/v1/experiences/<uuid>/star/` | User login |
+| GET | `/api-auth/login/`, `/api-auth/logout/` | Login browsable API |
+
+**Halaman web**
+
+| Method | Endpoint | Keterangan | Akses |
+|---|---|---|---|
+| GET | `/` | Halaman utama | Semua |
+| GET | `/experience/` | Halaman Experience (data dari API v1) | Semua |
+| GET | `/project/` | Halaman Project | Semua |
+| GET | `/project/<slug>/` | Detail Project | Semua |
+| GET, POST | `/register/` | Registrasi | Semua |
+| GET, POST | `/login/` | Login | Semua |
+| POST | `/logout/` | Logout | Semua |
+| GET | `/admin-panel/` | Dashboard admin | Owner, Editor |
+| GET, POST | `/admin-panel/experiences/add/` | Tambah Experience (form) | Owner |
+| GET, POST | `/admin-panel/experiences/<uuid>/edit/` | Edit Experience (form) | Owner |
+| POST | `/admin-panel/experiences/<uuid>/delete/` | Hapus Experience | Owner |
+| GET, POST | `/admin-panel/projects/add/` | Tambah Project (form) | Owner |
+| GET, POST | `/admin-panel/projects/<slug>/edit/` | Edit Project (form) | Owner, Editor |
+| POST | `/admin-panel/projects/<slug>/delete/` | Hapus Project | Owner |
+| GET | `/admin/` | Django admin | Staff |
+
+**Endpoint AJAX lama (Tugas 3 sampai 5, masih ada)**
+
+| Method | Endpoint | Akses |
+|---|---|---|
+| GET | `/api/projects/`, `/api/projects/data/` | Semua |
+| GET | `/api/experiences/`, `/api/experiences/data/` | Semua |
+| POST | `/project/add-ajax/` | Owner |
+| POST | `/project/<uuid>/star-ajax/` | User login |
+| POST | `/project/<uuid>/star/` | User login |
+| POST | `/experience/add-ajax/` | Owner |
+| POST | `/experience/<uuid>/star-ajax/` | User login |
 
 ### Progres Mingguan
 
@@ -35,6 +86,7 @@ Untuk mencoba website yang sudah di-deploy, dapat menggunakan demo account berik
 - Tugas 3: template `base.html`, ModelForm, CRUD Experience dan Project khusus staff, JSON API, autentikasi, pencarian.
 - Tugas 4: melanjutkan sistem autentikasi dari tutorial 4 (login, logout, register, cookie `last_login`). Tugas 4 menambah rbac pada bagian Project
 - Tugas 5: AJAX & Fetch API di halaman Project dan Experience (load data, search debounce, modal tambah data, toast notification), fitur star untuk Experience, skeleton loading, proteksi XSS (escaping di JS + strip_tags di server).
+- Tugas 6: Django REST Framework. API Project (tutorial) dan API Experience (tugas) di `/api/v1/` dengan serializer, permission 4 roles, dan test `APITestCase`. Halaman Experience sekarang memakai API untuk tampil, cari, filter, sort, tambah, edit, hapus, dan star.
 
 ### TUGAS 1
 1. pada Tutorial dan tugas 1, Anda diberi kebebasan untuk menentukan website tampilan dari website portfolio Anda. Saat anda merancang struktur HTML yang digunakan, apakah Anda menggunakan elemen semantik HTML5, seperti `<section>`. `<article>`, atau `<aside>`? Jika iya, bagaimana elemen tersebut membantu Anda dalam membuat static web? Jika tidak, mengapa tanpa elemen tersebut sudah memenuhi kebutuhan Anda?
@@ -252,3 +304,36 @@ Sebelumnya mohon maaf, karena saya lupa kalau CLI Claude tidak bisa share link d
 
 #### FITUR TAMBAHAN (Tugas 5)
 - Skeleton loading: kondisi loading pada halaman Project dan Experience menampilkan placeholder card dan otomatis nonaktif untuk pengguna dengan `prefers-reduced-motion` aktif.
+
+### Tugas 6
+
+1. Jelaskan apa yang dimaksud dengan REST dan mengapa mengembalikan JSON saja belum cukup untuk menyebut sebuah API sebagai RESTful! Jelaskan pula perbedaan PUT dan PATCH beserta contoh kapan masing-masing sebaiknya digunakan!
+
+-> REST merupakan arsitektur untuk rancang web API. Untuk web ini, data itu digunakan sebagai resource dengan URL sendiri, misalnya `/api/v1/experiences/` dan `/api/v1/experiences/<uuid>/`. Selain itu, method HTTP menyatakan tindakan, seperti GET untuk baca, POST untuk create, PUT/PATCH untuk ubah, dan DELETE untuk hapus. Jadi, tindakan tersebut tidak ditulis di URL seperti saat tugas 5. Kemudian, client dan server nantinya bertukar representasi data JSON dan JSON itu belum cukup, karena itu hanya format. API yang semua tindakannya lewat POST ke URL, seperti `/hapusExperience` dan slalu return 200 tetap bisa berformat JSON, tapi bukan RESTFUL. 
+
+PUT itu hanya mengirim representasi pengganti, jadi semua field yang wajib harus dikirim. Sedangkan PATCH hanya kirim field yang mau diubah. Pada test saya, PUT dengan title aja ditolak 400 karena field wajib lain, seperti description, category, dan started_at tidak ada. Sedangkan PATCH dengan title aja dapat return 200 dan field lainnya tetap. Oleh karena itu, untuk form edit, saya menggunakan PATCH karena bisa ubah 1 field aja tanpa harus kirim ulang semua datanya. PUT cocoknya kalau client memang mau kirim ulang seluruh datanya.
+
+2. Jelaskan peran serializer pada Django REST Framework! Apa keuntungannya dibandingkan merakit dictionary secara manual dengan JsonResponse seperti pada Tutorial 05?
+
+-> Serializer itu ada 2 arah, serialization sama deserialization. Untuk serialization, objek model Experience (yang isinya UUID, datetime, sama relasi starred_by) diubah jadi tipe data Python, kemudian dirender renderer DRF jadi JSON. Untuk deserialization, JSON dari modal nantinya divalidasi lewat `is_valid()` lalu nanti disimpan lewat `save()`. Dibanding `get_experiences_data` di tutorial 5, keuntungannya itu kontrak datanya didefinisikan sekali saja dan dipakai untuk daftar, detail, create, dan update. Kemudian, validasi dan clean datanya terpusat, misal `validate_title` pakai `strip_tags` atau URL yang divalidasi lewat `URLField`. Field hasil hitung bersifat read only, sehingga client tidak bisa memalsukan. Terakhir, view juga lebih ringkash karena tidak perlu tulis ulang logic yang sama untuk Project & Experience.
+
+3. Jelaskan perbedaan autentikasi dan otorisasi pada Django REST Framework! Mengapa hak akses harus diperiksa dengan permission class di server, bukan hanya dengan menyembunyikan tombol di template?
+
+-> Authentication itu untuk mengetahui siapa user ini, sehingga SessionAuthentication akan membaca sesi login dan isi request.user. Sedangkan authorization itu untuk mengetahui apa yang boleh dilakukan oleh user ini. Hal ini berkaitan dengan permission class, pada web ini, `IsPortfolioOwnerOrEditorOrReadOnly` akan memberikan akses untuk baca ke semua, PUT/PATCH ke editor & owner, dan POST/DELETE khusus owner. Selain itu, terdapat IsAuthenticated untuk star. 
+
+Menyembunyikan tombol itu hanya mengubah tampilan, untuk sederhananya, jika terdapat orang yang mengetahui route untuk POST atau DELETE, maka orang tersebut tetap bisa panggil endpoint langsung lewat DevTools, atau curl, atau Postman. Di test saya, untuk user biasa, anonim, dan editor yang kirim DELETE akan mendapat return 403 sehingga database tidak berubah. 
+
+4.  Jelaskan mengapa permintaan yang mengubah data tetap memerlukan token CSRF ketika API memakai SessionAuthentication! Mengapa test yang memakai force_authenticate tidak cukup untuk membuktikan bahwa perlindungan CSRF berjalan?
+
+-> Dengan `SessionAuthentication`, identitas akan dibawa ke cookie sesi, dan browser akan kirim cookie itu otomatis ke domain yang sama, termasuk untuk request dari situs lain. Sehingga, tanpa token CSRF, situs lain bisa membuat browser user yang sedang login mengirim POST, PUT, PATCH, atau DELETE tanpa sepengetahuan user tersebut. Oleh karena itu, fungsi token untuk prove bahwa request berasal dari halaman kita, karena situs lain tidak bisa membacanya. Pada web ini, `writeExperience` di `experience.js` menyertakan header `X-CSRFToken` dari cookie `csrftoken`. `force_authenticate` melewati proses authentication sehingga pemeriksaan CSRF yang dijalankan di `SessionAuthentication` tidak pernah berjalan. 
+
+#### AI Disclosure (Tugas 6)
+Tools: Claude
+log chat: https://claude.ai/share/693845b8-7728-4766-93c8-d187acae5002
+Saya memakai Claude untuk memahami konsep dan alur Tugas 6. Saya meminta penjelasan step-by-step dan teori dari soal, membandingkan API/method HTTP dan autentikasi/otorisasi lama (Tugas 3-5) dengan yang sekarang memakai kode repoku, bertanya fungsi DRF, penanganan respons 403/400/204 di `fetch()`, kapan method digabung dalam satu function, dan kapan serializer diperlukan. AI juga membaca kode repo dan memberi template pola serializer, permission, view, URL, dan helper fetch. 
+
+Keterbatasannya: contoh awal memakai model generik sehingga harus kusesuaikan dengan `Experience`, AI membantu memberikan beberapa code, dan tetap dilakukan penyesuaian seperti dari <int:> ke UUID dan terkait showToast. Selain itu, saya yang menentukan sistem satu modal untuk tambah dan edit (PATCH untuk edit), fitur tambahan filter kategori + sort, dan membiarkan endpoint lama tugas 3-5 tetap ada. Sebelumnya juga terdapat permasalahan interpreter, dan karena AI tidak bisa membantu, sehingga saya yang menyesuaikan ulang interpreter tersebut.
+
+
+#### FITUR TAMBAHAN (Tugas 6)
+- Filter kategori + sort pada Experience:`GET /api/v1/experiences/?category=internship&sort=star` (sort terbaru secara default, `star` untuk terpopuler, dihitung di database lewat `annotate`). Di halaman `/experience/` ada dua dropdown yang bisa dikombinasikan dengan pencarian judul.
