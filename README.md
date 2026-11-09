@@ -22,7 +22,7 @@ Untuk mencoba website yang sudah di-deploy, dapat menggunakan demo account berik
 | Role | Username | Password | Yang bisa dicoba |
 |---|---|---|---|
 | Pengguna biasa | `user_demo` | `userbiasa123` | Login, star/unstar Project |
-| Editor | `editor_demo` | `editor123` | Login -> link "Admin Dashboard" muncul di navbar, bisa edit Project (tapi create/delete Project & seluruh Experience tidak bisa) |
+| Editor | `editor_demo` | `editor123` | Login -> link "Admin Dashboard" muncul di navbar, bisa edit Project dan Experience (create/delete tidak bisa) |
 | Owner (superuser) | `demo` | `demo123` | Akses penuh -> create/update/delete Experience & Project |
 
 (Password di atas cuma buat demo publik)
@@ -60,7 +60,7 @@ Untuk mencoba website yang sudah di-deploy, dapat menggunakan demo account berik
 | POST | `/logout/` | Logout | Semua |
 | GET | `/admin-panel/` | Dashboard admin | Owner, Editor |
 | GET, POST | `/admin-panel/experiences/add/` | Tambah Experience (form) | Owner |
-| GET, POST | `/admin-panel/experiences/<uuid>/edit/` | Edit Experience (form) | Owner |
+| GET, POST | `/admin-panel/experiences/<uuid>/edit/` | Edit Experience (form) | Owner, Editor |
 | POST | `/admin-panel/experiences/<uuid>/delete/` | Hapus Experience | Owner |
 | GET, POST | `/admin-panel/projects/add/` | Tambah Project (form) | Owner |
 | GET, POST | `/admin-panel/projects/<slug>/edit/` | Edit Project (form) | Owner, Editor |

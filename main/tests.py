@@ -219,6 +219,21 @@ class ExperienceAdminTests(TestCase):
             "Updated Experience",
         )
 
+    def test_editor_can_edit_but_not_delete_experience(self):
+        from django.contrib.auth.models import Group
+
+        editor = get_user_model().objects.create_user(username="test_editor", password="test_password_123")
+        editor.groups.add(Group.objects.get_or_create(name="Editor")[0])
+        self.client.login(username="test_editor", password="test_password_123")
+
+        edit_url = reverse("main:update_experience", args=[self.experience.id])
+        self.assertEqual(self.client.get(edit_url).status_code, 200)
+        self.assertContains(self.client.get(reverse("main:admin_dashboard")), edit_url)
+
+        delete_url = reverse("main:delete_experience", args=[self.experience.id])
+        self.assertEqual(self.client.post(delete_url).status_code, 403)
+        self.assertTrue(Experience.objects.filter(pk=self.experience.pk).exists())
+
     def test_delete_experience(self):
         self.client.login(
             username="test_admin",

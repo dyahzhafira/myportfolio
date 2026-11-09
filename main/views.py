@@ -373,7 +373,7 @@ def create_experience_ajax(request):
     return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
 
 
-@owner_required
+@editor_or_owner_required
 def update_experience(request, experience_id):
     """ubah Experience lewat form"""
     experience = get_object_or_404(Experience, id=experience_id)
